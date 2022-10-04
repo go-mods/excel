@@ -68,8 +68,6 @@ func (r *structReader) Unmarshall() error {
 func (r *structReader) updateColumnIndex(row []string) {
 	// Initialize all fields index
 	for _, f := range r.schema.Fields {
-		f.ColumnIndex = -1
-
 		// Loop throw all columns
 		for colIndex, cell := range row {
 			if f.ColumnName == cell {

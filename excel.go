@@ -7,6 +7,25 @@ import (
 type Excel struct {
 	File         *excelize.File
 	ReaderConfig *ReaderConfig
+	WriterConfig *WriterConfig
+}
+
+func (e *Excel) Marshal(container any) error {
+	// Validate excel input
+	err := e.Validate()
+	if err != nil {
+		return err
+	}
+
+	// Create the writer
+	writer, err := newWriter(e.WriterConfig, container)
+	if err != nil {
+		return err
+	}
+
+	// unmarshall
+	err = writer.Marshall(container)
+	return err
 }
 
 func (e *Excel) Unmarshal(container any) error {
@@ -31,11 +50,17 @@ func (e *Excel) SetSheetName(sheet string) {
 	if e.ReaderConfig != nil {
 		e.ReaderConfig.SetSheetName(sheet)
 	}
+	if e.WriterConfig != nil {
+		e.WriterConfig.SetSheetName(sheet)
+	}
 }
 
 func (e *Excel) SetAxis(axis string) {
 	if e.ReaderConfig != nil {
 		e.ReaderConfig.SetAxis(axis)
+	}
+	if e.WriterConfig != nil {
+		e.WriterConfig.SetAxis(axis)
 	}
 }
 
@@ -43,6 +68,10 @@ func (e *Excel) Validate() error {
 	if e.File == nil {
 		return errFileIsNil
 	}
-	err := e.ReaderConfig.Validate()
-	return err
+	if e.ReaderConfig != nil {
+		return e.ReaderConfig.Validate()
+	} else if e.WriterConfig != nil {
+		return e.WriterConfig.Validate()
+	}
+	return errConfigNotValid
 }
