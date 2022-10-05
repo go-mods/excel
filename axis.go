@@ -2,33 +2,35 @@ package excel
 
 import "github.com/xuri/excelize/v2"
 
+// Axis represent the coordinates in the
+// Excel file where data will read or write
 type Axis struct {
 	Axis string
 	Col  int
 	Row  int
 }
 
-func (r *ReaderConfig) SetAxis(axis string) {
+func (r *ReaderInfo) SetAxis(axis string) {
 	setAxis(&r.Axis, axis)
 }
 
-func (r *ReaderConfig) SetAxisCoordinates(col int, row int) {
+func (r *ReaderInfo) SetAxisCoordinates(col int, row int) {
 	setAxisCoordinates(&r.Axis, col, row)
 }
 
-func (r *ReaderConfig) isAxisValid() bool {
+func (r *ReaderInfo) isAxisValid() bool {
 	return isAxisValid(&r.Axis)
 }
 
-func (w *WriterConfig) SetAxis(axis string) {
+func (w *WriterInfo) SetAxis(axis string) {
 	setAxis(&w.Axis, axis)
 }
 
-func (w *WriterConfig) SetAxisCoordinates(col int, row int) {
+func (w *WriterInfo) SetAxisCoordinates(col int, row int) {
 	setAxisCoordinates(&w.Axis, col, row)
 }
 
-func (w *WriterConfig) isAxisValid() bool {
+func (w *WriterInfo) isAxisValid() bool {
 	return isAxisValid(&w.Axis)
 }
 

@@ -3,15 +3,16 @@ package excel
 import "errors"
 
 var (
-	errFileIsNil      = errors.New("excel: the file is nil")
-	errSheetNotValid  = errors.New("excel: the sheet name is not valid")
-	errAxisNotValid   = errors.New("excel: the axis is not valid")
-	errConfigNotValid = errors.New("excel: the configuration is not valid")
+	ErrFileIsNil      = errors.New("excel: the file is nil")
+	ErrSheetNotValid  = errors.New("excel: the sheet name is not valid")
+	ErrAxisNotValid   = errors.New("excel: the axis is not valid")
+	ErrConfigNotValid = errors.New("excel: the configuration is not valid")
 
-	errNoReaderFound = errors.New("excel: unable to create an appropriate reader")
-	errNoWriterFound = errors.New("excel: unable to create an appropriate writer")
+	ErrNoReaderFound = errors.New("excel: unable to create an appropriate reader")
+	ErrNoWriterFound = errors.New("excel: unable to create an appropriate writer")
 
-	errContainerInvalid = errors.New("excel: the container must be a slice or a pointer")
+	ErrContainerInvalid = errors.New("excel: the ContainerInfo must be a slice or a pointer")
+	ErrColumnRequired   = errors.New("excel: required colum")
 
-	errNotImplemented = errors.New("excel: not implemented")
+	ErrNotImplemented = errors.New("excel: not implemented")
 )

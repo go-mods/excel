@@ -8,14 +8,14 @@ type Writer interface {
 }
 
 // newWriter create the appropriate writer
-func newWriter(config *WriterConfig, container any) (Writer, error) {
-	// The type of the reader depends on the container
+func newWriter(info *WriterInfo, container any) (Writer, error) {
+	// The type of the reader depends on the ContainerInfo
 	containerValue := reflect.ValueOf(container)
 	containerType := reflect.Indirect(containerValue).Type()
 
-	// Validate container
+	// Validate ContainerInfo
 	if containerValue.Kind() != reflect.Pointer && containerType.Kind() != reflect.Slice {
-		return nil, errContainerInvalid
+		return nil, ErrContainerInvalid
 	}
 
 	// Get element
@@ -27,14 +27,14 @@ func newWriter(config *WriterConfig, container any) (Writer, error) {
 	// create the reader
 	switch containerElement.Kind() {
 	case reflect.Struct:
-		writer, err := newStructWriter(config, containerElement)
+		writer, err := newStructWriter(info, containerValue)
 		return writer, err
 	case reflect.Map:
-		writer, err := newMapWriter(config)
+		writer, err := newMapWriter(info, containerValue)
 		return writer, err
 	case reflect.Slice, reflect.Array:
-		writer, err := newSliceWriter(config)
+		writer, err := newSliceWriter(info, containerValue)
 		return writer, err
 	}
-	return nil, errNoWriterFound
+	return nil, ErrNoWriterFound
 }

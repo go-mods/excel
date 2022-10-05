@@ -5,9 +5,9 @@ import (
 )
 
 type Excel struct {
-	File         *excelize.File
-	ReaderConfig *ReaderConfig
-	WriterConfig *WriterConfig
+	File       *excelize.File
+	ReaderInfo *ReaderInfo
+	WriterInfo *WriterInfo
 }
 
 func (e *Excel) Marshal(container any) error {
@@ -18,7 +18,7 @@ func (e *Excel) Marshal(container any) error {
 	}
 
 	// Create the writer
-	writer, err := newWriter(e.WriterConfig, container)
+	writer, err := newWriter(e.WriterInfo, container)
 	if err != nil {
 		return err
 	}
@@ -36,7 +36,7 @@ func (e *Excel) Unmarshal(container any) error {
 	}
 
 	// Create the reader
-	reader, err := newReader(e.ReaderConfig, container)
+	reader, err := newReader(e.ReaderInfo, container)
 	if err != nil {
 		return err
 	}
@@ -47,49 +47,49 @@ func (e *Excel) Unmarshal(container any) error {
 }
 
 func (e *Excel) SetSheetName(sheet string) {
-	if e.ReaderConfig != nil {
-		e.ReaderConfig.SetSheetName(sheet)
+	if e.ReaderInfo != nil {
+		e.ReaderInfo.SetSheetName(sheet)
 	}
-	if e.WriterConfig != nil {
-		e.WriterConfig.SetSheetName(sheet)
+	if e.WriterInfo != nil {
+		e.WriterInfo.SetSheetName(sheet)
 	}
 }
 
 func (e *Excel) SetSheetIndex(index int) {
-	if e.ReaderConfig != nil {
-		e.ReaderConfig.SetSheetIndex(index)
+	if e.ReaderInfo != nil {
+		e.ReaderInfo.SetSheetIndex(index)
 	}
-	if e.WriterConfig != nil {
-		e.WriterConfig.SetSheetIndex(index)
+	if e.WriterInfo != nil {
+		e.WriterInfo.SetSheetIndex(index)
 	}
 }
 
 func (e *Excel) SetAxis(axis string) {
-	if e.ReaderConfig != nil {
-		e.ReaderConfig.SetAxis(axis)
+	if e.ReaderInfo != nil {
+		e.ReaderInfo.SetAxis(axis)
 	}
-	if e.WriterConfig != nil {
-		e.WriterConfig.SetAxis(axis)
+	if e.WriterInfo != nil {
+		e.WriterInfo.SetAxis(axis)
 	}
 }
 
 func (e *Excel) SetAxisCoordinates(col int, row int) {
-	if e.ReaderConfig != nil {
-		e.ReaderConfig.SetAxisCoordinates(col, row)
+	if e.ReaderInfo != nil {
+		e.ReaderInfo.SetAxisCoordinates(col, row)
 	}
-	if e.WriterConfig != nil {
-		e.WriterConfig.SetAxisCoordinates(col, row)
+	if e.WriterInfo != nil {
+		e.WriterInfo.SetAxisCoordinates(col, row)
 	}
 }
 
 func (e *Excel) Validate() error {
 	if e.File == nil {
-		return errFileIsNil
+		return ErrFileIsNil
 	}
-	if e.ReaderConfig != nil {
-		return e.ReaderConfig.Validate()
-	} else if e.WriterConfig != nil {
-		return e.WriterConfig.Validate()
+	if e.ReaderInfo != nil {
+		return e.ReaderInfo.Validate()
+	} else if e.WriterInfo != nil {
+		return e.WriterInfo.Validate()
 	}
-	return errConfigNotValid
+	return ErrConfigNotValid
 }

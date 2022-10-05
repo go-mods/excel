@@ -5,19 +5,22 @@ import (
 )
 
 type structReader struct {
-	config *ReaderConfig
-	schema *schema
-
-	containerValue   reflect.Value
-	containerElement reflect.Type
+	readerInfo *ReaderInfo
+	container  *ContainerInfo
+	structInfo *StructInfo
 }
 
-func newStructReader(config *ReaderConfig, containerValue reflect.Value, containerElement reflect.Type) (*structReader, error) {
+func newStructReader(readerInfo *ReaderInfo, containerValue reflect.Value) (*structReader, error) {
+	containerTypeElem := reflect.Indirect(containerValue).Type().Elem()
+	c := &ContainerInfo{
+		value:     containerValue,
+		typeElem:  containerTypeElem,
+		isPointer: containerTypeElem.Kind() == reflect.Pointer,
+	}
 	r := &structReader{
-		config:           config,
-		schema:           newSchema(containerElement),
-		containerValue:   containerValue,
-		containerElement: containerElement,
+		readerInfo: readerInfo,
+		container:  c,
+		structInfo: getStructInfo(c),
 	}
 	return r, nil
 }
@@ -26,13 +29,13 @@ func newStructReader(config *ReaderConfig, containerValue reflect.Value, contain
 func (r *structReader) Unmarshall() error {
 
 	// get excel row
-	rows, err := r.config.file.Rows(r.config.Sheet.Name)
+	rows, err := r.readerInfo.file.Rows(r.readerInfo.Sheet.Name)
 	if err != nil {
 		return err
 	}
 
-	// prepare the slice container
-	slice := reflect.MakeSlice(reflect.SliceOf(r.containerElement), 0, 0)
+	// prepare the slice ContainerInfo
+	slice := reflect.MakeSlice(reflect.SliceOf(r.container.typeElem), 0, 0)
 
 	// Loop throw all rows
 	rowIndex := 0
@@ -44,31 +47,34 @@ func (r *structReader) Unmarshall() error {
 
 		// Title row
 		if rowIndex == 0 {
-			r.updateColumnIndex(row)
+			err := r.updateColumnIndex(row)
+			if err != nil {
+				return err
+			}
 		}
 
 		// Data row
 		if rowIndex > 0 {
-			containerElement, err := r.unmarshallRow(row)
+			value, err := r.unmarshallRow(row)
 			if err != nil {
 				return err
 			}
 
-			if containerElement.IsValid() {
-				slice = reflect.Append(slice, containerElement)
+			if value.IsValid() {
+				slice = reflect.Append(slice, value)
 			}
 		}
 		rowIndex++
 	}
 
-	r.containerValue.Elem().Set(slice)
+	r.container.value.Elem().Set(slice)
 
 	return rows.Close()
 }
 
-func (r *structReader) updateColumnIndex(row []string) {
+func (r *structReader) updateColumnIndex(row []string) error {
 	// Initialize all fields index
-	for _, f := range r.schema.Fields {
+	for _, f := range r.structInfo.Fields {
 		// Loop throw all columns
 		for colIndex, cell := range row {
 			if f.ColumnNameIn() == cell && !f.IgnoreIn() {
@@ -76,18 +82,21 @@ func (r *structReader) updateColumnIndex(row []string) {
 				break
 			}
 		}
+		// Required column
+		if f.IsRequiredIn() && f.TagsIn.columnIndex == -1 {
+			return ErrColumnRequired
+		}
 	}
+	return nil
 }
 
 func (r *structReader) unmarshallRow(row []string) (value reflect.Value, err error) {
 
-	containerElement := reflect.New(r.containerElement).Elem()
+	containerElement := r.container.create()
 
 	// Loop throw all fields
-	for _, fieldConfig := range r.schema.Fields {
+	for _, fieldConfig := range r.structInfo.Fields {
 		if fieldConfig.TagsIn.columnIndex >= 0 {
-
-			var fieldValue = containerElement.Field(fieldConfig.FieldIndex)
 
 			if len(row) >= fieldConfig.TagsIn.columnIndex+1 {
 				value, err = fieldConfig.toValue(row[fieldConfig.TagsIn.columnIndex])
@@ -98,7 +107,7 @@ func (r *structReader) unmarshallRow(row []string) (value reflect.Value, err err
 				value = reflect.ValueOf(fieldConfig.DefaultValueIn())
 			}
 
-			fieldValue.Set(value.Convert(fieldConfig.FieldType))
+			r.container.setFieldValue(containerElement, fieldConfig.FieldIndex, value.Convert(fieldConfig.FieldType))
 		}
 	}
 

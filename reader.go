@@ -10,33 +10,34 @@ type Reader interface {
 }
 
 // newReader create the appropriate reader
-func newReader(config *ReaderConfig, container any) (Reader, error) {
-	// The type of the reader depends on the container
+func newReader(info *ReaderInfo, container any) (Reader, error) {
+	// The type of the reader depends on the ContainerInfo
 	containerValue := reflect.ValueOf(container)
 	containerType := reflect.Indirect(containerValue).Type()
 
-	// Validate container
+	// Validate ContainerInfo
 	if containerValue.Kind() != reflect.Pointer && containerType.Kind() != reflect.Slice {
-		return nil, errContainerInvalid
+		return nil, ErrContainerInvalid
 	}
 
 	// Get element
 	containerElement := containerType.Elem()
-	if containerElement.Kind() == reflect.Ptr {
+	if containerElement.Kind() == reflect.Pointer {
 		containerElement = containerElement.Elem()
 	}
 
-	// create the reader
+	// create the reader according to the
+	// type of element
 	switch containerElement.Kind() {
 	case reflect.Struct:
-		reader, err := newStructReader(config, containerValue, containerElement)
+		reader, err := newStructReader(info, containerValue)
 		return reader, err
 	case reflect.Map:
-		reader, err := newMapReader(config, containerValue)
+		reader, err := newMapReader(info, containerValue)
 		return reader, err
 	case reflect.Slice, reflect.Array:
-		reader, err := newSliceReader(config, containerValue)
+		reader, err := newSliceReader(info, containerValue)
 		return reader, err
 	}
-	return nil, errNoReaderFound
+	return nil, ErrNoReaderFound
 }

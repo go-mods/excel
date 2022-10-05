@@ -2,32 +2,34 @@ package excel
 
 import "github.com/xuri/excelize/v2"
 
+// Sheet represent the sheet in the
+// Excel file where data will read or write
 type Sheet struct {
 	Name  string
 	Index int
 }
 
-func (r *ReaderConfig) SetSheetName(n string) {
+func (r *ReaderInfo) SetSheetName(n string) {
 	setSheetName(r.file, &r.Sheet, n)
 }
 
-func (r *ReaderConfig) SetSheetIndex(i int) {
+func (r *ReaderInfo) SetSheetIndex(i int) {
 	setSheetIndex(r.file, &r.Sheet, i)
 }
 
-func (r *ReaderConfig) isSheetValid() bool {
+func (r *ReaderInfo) isSheetValid() bool {
 	return isSheetValid(&r.Sheet)
 }
 
-func (w *WriterConfig) SetSheetName(n string) {
+func (w *WriterInfo) SetSheetName(n string) {
 	setSheetName(w.file, &w.Sheet, n)
 }
 
-func (w *WriterConfig) SetSheetIndex(i int) {
+func (w *WriterInfo) SetSheetIndex(i int) {
 	setSheetIndex(w.file, &w.Sheet, i)
 }
 
-func (w *WriterConfig) isSheetValid() bool {
+func (w *WriterInfo) isSheetValid() bool {
 	return isSheetValid(&w.Sheet)
 }
 

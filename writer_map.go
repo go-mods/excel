@@ -1,12 +1,14 @@
 package excel
 
+import "reflect"
+
 type mapWriter struct {
 }
 
-func newMapWriter(_ *WriterConfig) (*mapWriter, error) {
-	return nil, errNotImplemented
+func newMapWriter(_ *WriterInfo, _ reflect.Value) (*mapWriter, error) {
+	return nil, ErrNotImplemented
 }
 
 func (w *mapWriter) Marshall(data any) error {
-	return errNotImplemented
+	return ErrNotImplemented
 }

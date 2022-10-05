@@ -30,7 +30,7 @@ func TestActiveFieldTags_ColumnName(t *testing.T) {
 	_ = inFile.SetCellValue(inFile.GetSheetName(inFile.GetActiveSheetIndex()), "A2", 1)
 	defer func() { _ = inFile.Close() }()
 
-	inExcel, _ := excel.NewReaderConfig(inFile)
+	inExcel, _ := excel.NewReader(inFile)
 	inExcel.SetSheetName(inFile.GetSheetName(inFile.GetActiveSheetIndex()))
 	inExcel.SetAxis("A1")
 
@@ -48,7 +48,7 @@ func TestActiveFieldTags_ColumnName(t *testing.T) {
 	outFile := excelize.NewFile()
 	defer func() { _ = outFile.Close() }()
 
-	outExcel, _ := excel.NewWriterConfig(outFile)
+	outExcel, _ := excel.NewWriter(outFile)
 	outExcel.SetSheetName(outFile.GetSheetName(outFile.GetActiveSheetIndex()))
 	outExcel.SetAxis("A1")
 
@@ -79,7 +79,7 @@ func TestActiveFieldTags_DefaultValue(t *testing.T) {
 	_ = inFile.SetCellValue(inFile.GetSheetName(inFile.GetActiveSheetIndex()), "B2", "")
 	defer func() { _ = inFile.Close() }()
 
-	inExcel, _ := excel.NewReaderConfig(inFile)
+	inExcel, _ := excel.NewReader(inFile)
 	inExcel.SetSheetIndex(0)
 	inExcel.SetAxisCoordinates(1, 1)
 
@@ -97,7 +97,7 @@ func TestActiveFieldTags_DefaultValue(t *testing.T) {
 	outFile := excelize.NewFile()
 	defer func() { _ = outFile.Close() }()
 
-	outExcel, _ := excel.NewWriterConfig(outFile)
+	outExcel, _ := excel.NewWriter(outFile)
 	outExcel.SetSheetIndex(0)
 	outExcel.SetAxisCoordinates(1, 1)
 
@@ -122,7 +122,7 @@ func TestActiveFieldTags_Ignored(t *testing.T) {
 	_ = inFile.SetCellValue(inFile.GetSheetName(inFile.GetActiveSheetIndex()), "C2", "this is ignored")
 	defer func() { _ = inFile.Close() }()
 
-	inExcel, _ := excel.NewReaderConfig(inFile)
+	inExcel, _ := excel.NewReader(inFile)
 	inExcel.SetSheetName(inFile.GetSheetName(inFile.GetActiveSheetIndex()))
 	inExcel.SetAxis("A1")
 
@@ -140,7 +140,7 @@ func TestActiveFieldTags_Ignored(t *testing.T) {
 	outFile := excelize.NewFile()
 	defer func() { _ = outFile.Close() }()
 
-	outExcel, _ := excel.NewWriterConfig(outFile)
+	outExcel, _ := excel.NewWriter(outFile)
 	outExcel.SetSheetName(outFile.GetSheetName(outFile.GetActiveSheetIndex()))
 	outExcel.SetAxis("A1")
 
@@ -163,7 +163,7 @@ func TestActiveFieldTags_Encoding(t *testing.T) {
 	_ = inFile.SetCellValue(inFile.GetSheetName(inFile.GetActiveSheetIndex()), "B2", "{ \"name\":\"a string\" }")
 	defer func() { _ = inFile.Close() }()
 
-	inExcel, _ := excel.NewReaderConfig(inFile)
+	inExcel, _ := excel.NewReader(inFile)
 	inExcel.SetSheetName(inFile.GetSheetName(inFile.GetActiveSheetIndex()))
 	inExcel.SetAxis("A1")
 
@@ -181,7 +181,7 @@ func TestActiveFieldTags_Encoding(t *testing.T) {
 	outFile := excelize.NewFile()
 	defer func() { _ = outFile.Close() }()
 
-	outExcel, _ := excel.NewWriterConfig(outFile)
+	outExcel, _ := excel.NewWriter(outFile)
 	outExcel.SetSheetName(outFile.GetSheetName(outFile.GetActiveSheetIndex()))
 	outExcel.SetAxis("A1")
 
@@ -205,7 +205,7 @@ func TestActiveFieldTags_Format(t *testing.T) {
 	_ = inFile.SetCellValue(inFile.GetSheetName(inFile.GetActiveSheetIndex()), "B2", "31/12/2022")
 	defer func() { _ = inFile.Close() }()
 
-	inExcel, _ := excel.NewReaderConfig(inFile)
+	inExcel, _ := excel.NewReader(inFile)
 	inExcel.SetSheetName(inFile.GetSheetName(inFile.GetActiveSheetIndex()))
 	inExcel.SetAxis("A1")
 
@@ -231,7 +231,7 @@ func TestActiveFieldTags_Format(t *testing.T) {
 	outFile := excelize.NewFile()
 	defer func() { _ = outFile.Close() }()
 
-	outExcel, _ := excel.NewWriterConfig(outFile)
+	outExcel, _ := excel.NewWriter(outFile)
 	outExcel.SetSheetName(outFile.GetSheetName(outFile.GetActiveSheetIndex()))
 	outExcel.SetAxis("A1")
 
@@ -255,7 +255,7 @@ func TestActiveFieldTags_Split(t *testing.T) {
 	_ = inFile.SetCellValue(inFile.GetSheetName(inFile.GetActiveSheetIndex()), "B2", "1;2;3")
 	defer func() { _ = inFile.Close() }()
 
-	inExcel, _ := excel.NewReaderConfig(inFile)
+	inExcel, _ := excel.NewReader(inFile)
 	inExcel.SetSheetName(inFile.GetSheetName(inFile.GetActiveSheetIndex()))
 	inExcel.SetAxis("A1")
 
@@ -285,7 +285,7 @@ func TestActiveFieldTags_Split(t *testing.T) {
 	outFile := excelize.NewFile()
 	defer func() { _ = outFile.Close() }()
 
-	outExcel, _ := excel.NewWriterConfig(outFile)
+	outExcel, _ := excel.NewWriter(outFile)
 	outExcel.SetSheetName(outFile.GetSheetName(outFile.GetActiveSheetIndex()))
 	outExcel.SetAxis("A1")
 
@@ -302,4 +302,25 @@ func TestActiveFieldTags_Split(t *testing.T) {
 
 func TestActiveFieldTags_Required(t *testing.T) {
 
+	type SimpleUser struct {
+		Id   int    `excel:"Id,required"`
+		Name string `excel:"Name,required"`
+	}
+
+	var simpleUsers []SimpleUser
+
+	inFile := excelize.NewFile()
+	_ = inFile.SetCellValue(inFile.GetSheetName(inFile.GetActiveSheetIndex()), "A1", "Id")
+	_ = inFile.SetCellValue(inFile.GetSheetName(inFile.GetActiveSheetIndex()), "A2", 1)
+	defer func() { _ = inFile.Close() }()
+
+	inExcel, _ := excel.NewReader(inFile)
+	inExcel.SetSheetName(inFile.GetSheetName(inFile.GetActiveSheetIndex()))
+	inExcel.SetAxis("A1")
+
+	err := inExcel.Unmarshal(&simpleUsers)
+	if err != excel.ErrColumnRequired {
+		t.Error("Required column  error")
+		return
+	}
 }

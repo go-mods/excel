@@ -5,10 +5,10 @@ import "reflect"
 type sliceReader struct {
 }
 
-func newSliceReader(_ *ReaderConfig, _ reflect.Value) (*sliceReader, error) {
-	return nil, errNotImplemented
+func newSliceReader(_ *ReaderInfo, _ reflect.Value) (*sliceReader, error) {
+	return nil, ErrNotImplemented
 }
 
 func (r *sliceReader) Unmarshall() error {
-	return errNotImplemented
+	return ErrNotImplemented
 }
