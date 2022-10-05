@@ -22,6 +22,7 @@ func newStructReader(config *ReaderConfig, containerValue reflect.Value, contain
 	return r, nil
 }
 
+// Unmarshall must be called when reading an Excel file
 func (r *structReader) Unmarshall() error {
 
 	// get excel row
@@ -70,27 +71,31 @@ func (r *structReader) updateColumnIndex(row []string) {
 	for _, f := range r.schema.Fields {
 		// Loop throw all columns
 		for colIndex, cell := range row {
-			if f.ColumnName == cell {
-				f.ColumnIndex = colIndex
+			if f.ColumnNameIn() == cell && !f.IgnoreIn() {
+				f.TagsIn.columnIndex = colIndex
 				break
 			}
 		}
 	}
 }
 
-func (r *structReader) unmarshallRow(row []string) (reflect.Value, error) {
+func (r *structReader) unmarshallRow(row []string) (value reflect.Value, err error) {
 
 	containerElement := reflect.New(r.containerElement).Elem()
 
 	// Loop throw all fields
 	for _, fieldConfig := range r.schema.Fields {
-		if fieldConfig.ColumnIndex >= 0 {
+		if fieldConfig.TagsIn.columnIndex >= 0 {
 
-			fieldValue := containerElement.Field(fieldConfig.FieldIndex)
+			var fieldValue = containerElement.Field(fieldConfig.FieldIndex)
 
-			value, err := fieldConfig.toValue(row[fieldConfig.ColumnIndex])
-			if err != nil {
-				return reflect.Value{}, nil
+			if len(row) >= fieldConfig.TagsIn.columnIndex+1 {
+				value, err = fieldConfig.toValue(row[fieldConfig.TagsIn.columnIndex])
+				if err != nil {
+					return reflect.Value{}, nil
+				}
+			} else {
+				value = reflect.ValueOf(fieldConfig.DefaultValueIn())
 			}
 
 			fieldValue.Set(value.Convert(fieldConfig.FieldType))

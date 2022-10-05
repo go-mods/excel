@@ -54,11 +54,11 @@ func (w *structWriter) Marshall(data any) error {
 func (w *structWriter) updateColumnIndex(row []string) {
 	// Initialize all fields index
 	for _, f := range w.schema.Fields {
-		if f.Export {
+		if !f.IgnoreOut() {
 			// Loop throw all columns
 			for colIndex, cell := range row {
-				if f.ColumnName == cell {
-					f.ColumnIndex = colIndex
+				if f.ColumnNameOut() == cell {
+					f.TagsOut.columnIndex = colIndex
 					break
 				}
 			}
@@ -68,18 +68,18 @@ func (w *structWriter) updateColumnIndex(row []string) {
 	// Get max column index
 	var maxIndex int = 0
 	for _, f := range w.schema.Fields {
-		if f.Export {
-			if f.ColumnIndex > maxIndex {
-				maxIndex = f.ColumnIndex
+		if !f.IgnoreOut() {
+			if f.TagsOut.columnIndex > maxIndex {
+				maxIndex = f.TagsOut.columnIndex
 			}
 		}
 	}
 
 	// Update field column index
 	for _, f := range w.schema.Fields {
-		if f.Export {
-			if f.ColumnIndex == -1 {
-				f.ColumnIndex = maxIndex
+		if !f.IgnoreOut() {
+			if f.TagsOut.columnIndex == -1 {
+				f.TagsOut.columnIndex = maxIndex
 				maxIndex++
 			}
 		}
@@ -100,9 +100,9 @@ func (w *structWriter) WriteRows(slice any) (err error) {
 
 	// Write title
 	for _, f := range w.schema.Fields {
-		if f.Export {
-			cell, _ := excelize.CoordinatesToCellName(col+f.ColumnIndex, row)
-			if err := w.config.file.SetCellValue(w.config.Sheet.Name, cell, f.ColumnName); err != nil {
+		if !f.IgnoreOut() {
+			cell, _ := excelize.CoordinatesToCellName(col+f.TagsOut.columnIndex, row)
+			if err := w.config.file.SetCellValue(w.config.Sheet.Name, cell, f.ColumnNameOut()); err != nil {
 				return err
 			}
 		}
@@ -121,8 +121,8 @@ func (w *structWriter) WriteRows(slice any) (err error) {
 		for j := 0; j < values.NumField(); j++ {
 			value := values.Field(j)
 			f := w.schema.GetFieldFromFieldIndex(j)
-			if f.Export {
-				cell, _ := excelize.CoordinatesToCellName(col+f.ColumnIndex, row)
+			if !f.IgnoreOut() {
+				cell, _ := excelize.CoordinatesToCellName(col+f.TagsOut.columnIndex, row)
 				cellValue := f.toCellValue(value.Interface())
 				if err := w.config.file.SetCellValue(w.config.Sheet.Name, cell, cellValue); err != nil {
 					return err

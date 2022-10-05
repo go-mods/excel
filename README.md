@@ -87,3 +87,17 @@ func main() {
 ```go
 Todo
 ```
+
+## Tags
+
+| Tags       | description                                                                                                  | excel | excel-in | excel-out | 
+|------------|--------------------------------------------------------------------------------------------------------------|:-----:|:--------:|:---------:|
+| column     | Field name in the title row.<br/>`by default the field name will be used`<br/>`in and out can be differents` | **X** |  **X**   |   **X**   |
+| default    | Default value to use when none is defined in the cell.                                                       | **X** |  **X**   |           |
+| format     | Format to apply                                                                                              | **X** |  **X**   |   **X**   |
+| encoding   | Encode or decode to the specified format<br/>`only json encoding is supported at the moment`                 | **X** |  **X**   |   **X**   |
+| split      | Define the split separator to use for array or slice field.                                                  | **X** |  **X**   |   **X**   |
+| required   | Will return ann error if the column is not present                                                           | **X** |  **X**   |           |
+| -          | Do not map the field to a column                                                                             | **X** |  **X**   |   **X**   |
+
+[] custom format ?

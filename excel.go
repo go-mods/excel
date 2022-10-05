@@ -55,12 +55,30 @@ func (e *Excel) SetSheetName(sheet string) {
 	}
 }
 
+func (e *Excel) SetSheetIndex(index int) {
+	if e.ReaderConfig != nil {
+		e.ReaderConfig.SetSheetIndex(index)
+	}
+	if e.WriterConfig != nil {
+		e.WriterConfig.SetSheetIndex(index)
+	}
+}
+
 func (e *Excel) SetAxis(axis string) {
 	if e.ReaderConfig != nil {
 		e.ReaderConfig.SetAxis(axis)
 	}
 	if e.WriterConfig != nil {
 		e.WriterConfig.SetAxis(axis)
+	}
+}
+
+func (e *Excel) SetAxisCoordinates(col int, row int) {
+	if e.ReaderConfig != nil {
+		e.ReaderConfig.SetAxisCoordinates(col, row)
+	}
+	if e.WriterConfig != nil {
+		e.WriterConfig.SetAxisCoordinates(col, row)
 	}
 }
 

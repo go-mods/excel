@@ -13,7 +13,7 @@ type Employee struct {
 	// map the column 'firstName'
 	First string `excel:"firstName,default:anonymous"`
 	// column can also be used to set the column name
-	FirstPtr *string `excel:"column:firstName,export:false"`
+	FirstPtr *string `excel:"column:firstName,export:false" excel-out:"-"`
 	// map the column 'lastName'
 	Last string `excel:"lastName,default:anonymous"`
 	// 'column' can be omitted when only mapping to column name
@@ -29,15 +29,15 @@ type Employee struct {
 	Salary int `excel:"salary"`
 	// Slice of staff ID's
 	// split will split the string into slice using `|` separator
-	Staff []int `excel:"staff,split:|"`
+	Staff []int `excel:"staff,split:|" excel-out:"split:;"`
 	// Slice of pointer of staff ID's
-	StaffPtr []*int `excel:"staff,split:|,export:false"`
+	StaffPtr []*int `excel:"staff,split:|,export:false" excel-out:"-"`
 	// 'FullName' column contains a json string
 	EncodedName EncodedName `excel:"encodedName,encoding:json"`
 	// 'FullName' column contains a json string
-	EncodedNamePtr *EncodedName `excel:"encodedName,encoding:json,export:false"`
+	EncodedNamePtr *EncodedName `excel:"encodedName,encoding:json,export:false" excel-out:"-"`
 	// use '-' to ignore.
-	Ignored string `excel:"-,export:false"`
+	Ignored string `excel:"-"`
 }
 
 type EncodedName struct {

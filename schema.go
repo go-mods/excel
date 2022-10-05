@@ -1,186 +1,338 @@
 package excel
 
 import (
-	"github.com/go-mods/convert"
-	"github.com/go-mods/tags"
 	"reflect"
 	"strings"
 	"time"
+
+	"github.com/go-mods/convert"
+	"github.com/go-mods/tags"
 )
 
 const (
-	tagIdentify = "excel"
+	mainKey = "excel"
+	inKey   = mainKey + "-in"
+	outKey  = mainKey + "-out"
 
-	columnTag   = "column"   // Used to set the column name
-	defaultTag  = "default"  // Used to set the default value
-	nilTag      = "nil"      // Used to define the value when the pointer is nil
-	formatTag   = "format"   // USed to specify the format to use
-	exportTag   = "export"   // Used to export the column, default export:true
-	encodingTag = "encoding" // Used to define the encoding to use
-	splitTag    = "split"    // Used to define the split separator
-	reqTag      = "required" // Used to define the field as required
-	ignoreTag   = "-"        // Ignore the field
-
-	defaultSplitSeparator = ";"
+	columnTag   = "column"
+	defaultTag  = "default"
+	formatTag   = "format"
+	encodingTag = "encoding"
+	splitTag    = "split"
+	requiredTag = "required"
+	ignoreTag   = "-"
 )
 
-// The FieldConfig struct hold all possibles tags for a field
-type FieldConfig struct {
-	// The config equals to tag: column
-	ColumnName string
-	// The config equals to tag: export
-	Export bool
-	// The config equals to tag: format
-	Format string
-	// The config equals to tag: default
-	DefaultValue string
-	// The config equals to tag: split
-	Split string
-	// The config equals to tag: decode
-	Encoding string
-	// The config equals to tag: nil
-	// if cell.value == NilValue, will skip fc scan
-	NilValue string
-	// The config equals to tag: req
-	// panic if required fc column but not set
-	IsRequired bool
-	// The config equals to tag: -
-	Ignore bool
+// The FieldTags struct hold all possibles tags for a field
+type FieldTags struct {
+	Tags    Tags
+	TagsIn  Tags
+	TagsOut Tags
 }
 
-// The FieldsConfig interface can be used as a replacement
-// of the tags parameters.
-type FieldsConfig interface {
-	GetFieldsTag() map[string]FieldConfig
+type Tags struct {
+	ColumnName   string
+	columnIndex  int
+	DefaultValue interface{}
+	Format       string
+	Encoding     string
+	Split        string
+	IsRequired   bool
+	Ignore       bool
 }
 
-type currentFieldConfig struct {
+// The FieldsTags interface can be used as a replacement of the tags parameters.
+type FieldsTags interface {
+	GetFieldsTags() map[string]*Tags
+}
+
+// The FieldsTagsIn interface can be used as a replacement of the tags parameters when importing an Excel file.
+type FieldsTagsIn interface {
+	GetFieldsTagsIn() map[string]*Tags
+}
+
+// The FieldsTagsOut interface can be used as a replacement of the tags parameters when exporting an Excel file.
+type FieldsTagsOut interface {
+	GetFieldsTagsOut() map[string]*Tags
+}
+
+type activeFieldTags struct {
 	FieldIndex int
 	FieldType  reflect.Type
 
-	ColumnName  string
-	ColumnIndex int
-
-	Export       bool
-	Format       string
-	DefaultValue string
-	Split        string
-	Encoding     string
-	NilValue     string
-	IsRequired   bool
+	Tags    *Tags
+	TagsIn  *Tags
+	TagsOut *Tags
 }
 
-func newFieldConfig() *currentFieldConfig {
-	config := &currentFieldConfig{
-		ColumnIndex: -1,
-		Export:      true,
+func (f *activeFieldTags) ColumnNameIn() string {
+	if len(f.TagsIn.ColumnName) > 0 {
+		return f.TagsIn.ColumnName
 	}
-	return config
+	return f.Tags.ColumnName
+}
+
+func (f *activeFieldTags) ColumnNameOut() string {
+	if len(f.TagsOut.ColumnName) > 0 {
+		return f.TagsOut.ColumnName
+	}
+	return f.Tags.ColumnName
+}
+
+func (f *activeFieldTags) DefaultValueIn() interface{} {
+	if f.TagsIn.DefaultValue != nil {
+		return f.TagsIn.DefaultValue
+	}
+	return f.Tags.DefaultValue
+}
+
+func (f *activeFieldTags) DefaultValueOut() interface{} {
+	if f.TagsOut.DefaultValue != nil {
+		return f.TagsOut.DefaultValue
+	}
+	return f.Tags.DefaultValue
+}
+
+func (f *activeFieldTags) FormatIn() string {
+	if len(f.TagsIn.Format) > 0 {
+		return f.TagsIn.Format
+	}
+	return f.Tags.Format
+}
+
+func (f *activeFieldTags) FormatOut() string {
+	if len(f.TagsOut.Format) > 0 {
+		return f.TagsOut.Format
+	}
+	return f.Tags.Format
+}
+
+func (f *activeFieldTags) EncodingIn() string {
+	if len(f.TagsIn.Encoding) > 0 {
+		return f.TagsIn.Encoding
+	}
+	return f.Tags.Encoding
+}
+
+func (f *activeFieldTags) EncodingOut() string {
+	if len(f.TagsOut.Encoding) > 0 {
+		return f.TagsOut.Encoding
+	}
+	return f.Tags.Encoding
+}
+
+func (f *activeFieldTags) SplitIn() string {
+	if len(f.TagsIn.Split) > 0 {
+		return f.TagsIn.Split
+	}
+	return f.Tags.Split
+}
+
+func (f *activeFieldTags) SplitOut() string {
+	if len(f.TagsOut.Split) > 0 {
+		return f.TagsOut.Split
+	}
+	return f.Tags.Split
+}
+
+func (f *activeFieldTags) IsRequiredIn() bool {
+	if f.TagsIn.IsRequired {
+		return f.TagsIn.IsRequired
+	}
+	return f.Tags.IsRequired
+}
+
+func (f *activeFieldTags) IsRequiredOut() bool {
+	if f.TagsOut.IsRequired {
+		return f.TagsOut.IsRequired
+	}
+	return f.Tags.IsRequired
+}
+
+func (f *activeFieldTags) IgnoreIn() bool {
+	if f.TagsIn.Ignore {
+		return f.TagsIn.Ignore
+	}
+	return f.Tags.Ignore
+}
+
+func (f *activeFieldTags) IgnoreOut() bool {
+	if f.TagsOut.Ignore {
+		return f.TagsOut.Ignore
+	}
+	return f.Tags.Ignore
+}
+
+func newTags() *Tags {
+	tags := &Tags{
+		columnIndex: -1,
+		IsRequired:  false,
+		Ignore:      false,
+	}
+	return tags
 }
 
 type schema struct {
 	Type   reflect.Type
-	Fields []*currentFieldConfig
+	Fields []*activeFieldTags
 }
-
-var timeType = reflect.TypeOf((*time.Time)(nil)).Elem()
 
 func newSchema(t reflect.Type) *schema {
 	s := &schema{
-		Fields: make([]*currentFieldConfig, 0, t.NumField()),
+		Fields: make([]*activeFieldTags, 0, t.NumField()),
 	}
 
-	// Check if the container implement FieldsConfig interface
-	var defaultFieldsConfig map[string]FieldConfig
+	// Check if the container implement FieldsTags, FieldsTagsIn or FieldsTagsOut interface
+	// ------------------------------------------------------------------------------------
+	type defaultFieldsTags struct {
+		tags    map[string]*Tags
+		tagsIn  map[string]*Tags
+		tagsOut map[string]*Tags
+	}
+	var defaultFieldsConfig defaultFieldsTags
+
 	v := reflect.New(t)
+
 	if v.CanInterface() {
-		if i, ok := v.Interface().(FieldsConfig); ok {
-			defaultFieldsConfig = i.GetFieldsTag()
+		if i, ok := v.Interface().(FieldsTags); ok {
+			defaultFieldsConfig.tags = i.GetFieldsTags()
+		}
+		if i, ok := v.Interface().(FieldsTagsIn); ok {
+			defaultFieldsConfig.tagsIn = i.GetFieldsTagsIn()
+		}
+		if i, ok := v.Interface().(FieldsTagsOut); ok {
+			defaultFieldsConfig.tagsOut = i.GetFieldsTagsOut()
 		}
 	} else if vElem := v.Elem(); vElem.CanInterface() {
-		if i, ok := vElem.Interface().(FieldsConfig); ok {
-			defaultFieldsConfig = i.GetFieldsTag()
+		if i, ok := vElem.Interface().(FieldsTags); ok {
+			defaultFieldsConfig.tags = i.GetFieldsTags()
+		}
+		if i, ok := vElem.Interface().(FieldsTagsIn); ok {
+			defaultFieldsConfig.tagsIn = i.GetFieldsTagsIn()
+		}
+		if i, ok := vElem.Interface().(FieldsTagsOut); ok {
+			defaultFieldsConfig.tagsOut = i.GetFieldsTagsOut()
 		}
 	}
 
 	// Loop throw each field of the container to get each field configuration
+	// ----------------------------------------------------------------------
 	for i := 0; i < t.NumField(); i++ {
+
 		field := t.Field(i)
-		if selectedFieldConfig, ok := defaultFieldsConfig[field.Name]; ok {
-			if !selectedFieldConfig.Ignore {
-				frozenConfig := selectedFieldConfig.freeze(i)
-				if frozenConfig.ColumnName == "" {
-					frozenConfig.ColumnName = field.Name
-				}
-				frozenConfig.FieldType = field.Type
-				s.Fields = append(s.Fields, frozenConfig)
-			}
-		} else if tag := tags.Lookup(field, tagIdentify); tag != nil {
-			if tag.Key != ignoreTag {
-				fieldConfig := s.parseTag(tag)
-				fieldConfig.FieldIndex = i
-				if fieldConfig.ColumnName == "" {
-					fieldConfig.ColumnName = field.Name
-				}
-				fieldConfig.FieldType = field.Type
-				s.Fields = append(s.Fields, fieldConfig)
-			}
-		} else {
-			fieldConfig := newFieldConfig()
-			fieldConfig.FieldIndex = i
-			fieldConfig.FieldType = field.Type
-			fieldConfig.ColumnName = field.Name
-			s.Fields = append(s.Fields, fieldConfig)
+
+		// Get tags from struct
+		fieldTags := &activeFieldTags{
+			FieldIndex: i,
+			FieldType:  field.Type,
 		}
+
+		if tag := tags.Lookup(field, mainKey); tag != nil {
+			if tag.Name != ignoreTag {
+				fieldTags.Tags = s.parseTag(tag)
+			} else {
+				fieldTags.Tags = newTags()
+				fieldTags.Tags.Ignore = true
+			}
+		}
+
+		if tag := tags.Lookup(field, inKey); tag != nil {
+			if tag.Name != ignoreTag {
+				fieldTags.TagsIn = s.parseTag(tag)
+			} else {
+				fieldTags.TagsIn = newTags()
+				fieldTags.TagsIn.Ignore = true
+			}
+		}
+
+		if tag := tags.Lookup(field, outKey); tag != nil {
+			if tag.Name != ignoreTag {
+				fieldTags.TagsOut = s.parseTag(tag)
+			} else {
+				fieldTags.TagsOut = newTags()
+				fieldTags.TagsOut.Ignore = true
+			}
+		}
+
+		// Overwrite with tags from interfaces
+		selectedFieldConfigMain := defaultFieldsConfig.tags[field.Name]
+		selectedFieldConfigIn := defaultFieldsConfig.tagsIn[field.Name]
+		selectedFieldConfigOut := defaultFieldsConfig.tagsOut[field.Name]
+
+		if selectedFieldConfigMain != nil {
+			s.freeze(selectedFieldConfigMain, fieldTags.Tags)
+		}
+
+		if selectedFieldConfigIn != nil {
+			s.freeze(selectedFieldConfigIn, fieldTags.TagsIn)
+		}
+
+		if selectedFieldConfigOut != nil {
+			s.freeze(selectedFieldConfigOut, fieldTags.TagsOut)
+		}
+
+		// default values if no tags are set
+		if fieldTags.Tags == nil {
+			fieldTags.Tags = newTags()
+		}
+		if fieldTags.Tags.ColumnName == "" {
+			fieldTags.Tags.ColumnName = field.Name
+		}
+		if fieldTags.TagsIn == nil {
+			fieldTags.TagsIn = newTags()
+		}
+		if fieldTags.TagsOut == nil {
+			fieldTags.TagsOut = newTags()
+		}
+
+		//
+		s.Fields = append(s.Fields, fieldTags)
 	}
 	s.Type = t
 	return s
 }
 
-func (s *schema) parseTag(t *tags.Tag) *currentFieldConfig {
-	c := newFieldConfig()
+func (s *schema) parseTag(tg *tags.Tag) *Tags {
+	tgs := newTags()
 
-	if len(t.Name) > 0 {
-		c.ColumnName = t.Name
+	if len(tg.Name) > 0 {
+		tgs.ColumnName = tg.Name
 	}
 
-	if o := t.GetOption(columnTag); o != nil {
-		c.ColumnName = o.Value
+	if o := tg.GetOption(columnTag); o != nil {
+		tgs.ColumnName = o.Value
 	}
-	if o := t.GetOption(defaultTag); o != nil {
-		c.DefaultValue = o.Value
+	if o := tg.GetOption(defaultTag); o != nil {
+		tgs.DefaultValue = o.Value
 	}
-	if o := t.GetOption(exportTag); o != nil {
-		e, err := convert.ToBool(o.Value)
-		if err != nil {
-			c.Export = false
-		}
-		c.Export = e
+	if o := tg.GetOption(formatTag); o != nil {
+		tgs.Format = o.Value
 	}
-	if o := t.GetOption(formatTag); o != nil {
-		c.Format = o.Value
+	if o := tg.GetOption(encodingTag); o != nil {
+		tgs.Encoding = o.Value
 	}
-	if o := t.GetOption(splitTag); o != nil {
-		if len(o.Value) == 0 {
-			c.Split = defaultSplitSeparator
-		} else {
-			c.Split = o.Value
+	if o := tg.GetOption(splitTag); o != nil {
+		if len(o.Value) != 0 {
+			tgs.Split = o.Value
 		}
 	}
-	if o := t.GetOption(encodingTag); o != nil {
-		c.Encoding = o.Value
-	}
-	if o := t.GetOption(nilTag); o != nil {
-		c.NilValue = o.Value
-	}
-	if o := t.GetOption(reqTag); o != nil {
-		c.IsRequired = true
+	if o := tg.GetOption(requiredTag); o != nil {
+		tgs.IsRequired = true
 	}
 
-	return c
+	return tgs
 }
 
-func (s *schema) GetFieldFromFieldIndex(index int) *currentFieldConfig {
+func (s *schema) freeze(from *Tags, to *Tags) {
+	to.ColumnName = from.ColumnName
+	to.DefaultValue = from.DefaultValue
+	to.Format = from.Format
+	to.Encoding = from.Encoding
+	to.Split = from.Split
+	to.IsRequired = from.IsRequired
+}
+
+func (s *schema) GetFieldFromFieldIndex(index int) *activeFieldTags {
 	for _, f := range s.Fields {
 		if f.FieldIndex == index {
 			return f
@@ -189,52 +341,25 @@ func (s *schema) GetFieldFromFieldIndex(index int) *currentFieldConfig {
 	return nil
 }
 
-func (s *schema) GetFieldFromColumnName(name string) *currentFieldConfig {
-	for _, f := range s.Fields {
-		if f.ColumnName == name {
-			return f
-		}
-	}
-	return nil
-}
+var timeType = reflect.TypeOf((*time.Time)(nil)).Elem()
 
-func (s *schema) GetFieldFromColumnIndex(index int) *currentFieldConfig {
-	for _, f := range s.Fields {
-		if f.ColumnIndex == index {
-			return f
-		}
-	}
-	return nil
-}
-
-func (f *FieldConfig) freeze(fieldIdx int) *currentFieldConfig {
-	fieldConfig := newFieldConfig()
-	fieldConfig.FieldIndex = fieldIdx
-	fieldConfig.ColumnName = f.ColumnName
-	fieldConfig.Export = f.Export
-	fieldConfig.Format = f.Format
-	fieldConfig.DefaultValue = f.DefaultValue
-	fieldConfig.Split = f.Split
-	fieldConfig.Encoding = f.Encoding
-	fieldConfig.NilValue = f.NilValue
-	fieldConfig.IsRequired = f.IsRequired
-
-	return fieldConfig
-}
-
-func (f *currentFieldConfig) toValue(from string) (value reflect.Value, err error) {
+// toValue is called when reading an Excel file
+func (f *activeFieldTags) toValue(from string) (value reflect.Value, err error) {
 
 	// Field of type Slice or Array
 	if f.FieldType.Kind() == reflect.Slice || f.FieldType.Kind() == reflect.Array {
-		values := strings.Split(convert.ToValidString(from), f.Split)
-		value = reflect.MakeSlice(reflect.SliceOf(f.FieldType.Elem()), 0, len(values))
-		for _, vs := range values {
-			v, err := f.decode(vs, f.FieldType.Elem())
-			if err != nil {
-				return reflect.Value{}, nil
+		if len(from) > 0 {
+			values := strings.Split(convert.ToValidString(from), f.SplitIn())
+			value = reflect.MakeSlice(reflect.SliceOf(f.FieldType.Elem()), 0, len(values))
+			for _, vs := range values {
+				v, err := f.decode(vs, f.FieldType.Elem())
+				if err != nil {
+					return reflect.Value{}, err
+				}
+				value = reflect.Append(value, v)
 			}
-
-			value = reflect.Append(value, v)
+		} else {
+			return reflect.MakeSlice(reflect.SliceOf(f.FieldType.Elem()), 0, 0), nil
 		}
 		return
 	}
@@ -243,7 +368,7 @@ func (f *currentFieldConfig) toValue(from string) (value reflect.Value, err erro
 	if f.FieldType.Kind() == reflect.Pointer {
 		value, err = f.decode(from, f.FieldType)
 		if err != nil {
-			return reflect.Value{}, nil
+			return reflect.Value{}, err
 		}
 		return
 	}
@@ -251,51 +376,54 @@ func (f *currentFieldConfig) toValue(from string) (value reflect.Value, err erro
 	// Decode the string
 	value, err = f.decode(from, f.FieldType)
 	if err != nil {
-		return reflect.Value{}, nil
+		return reflect.Value{}, err
 	}
 
 	return
 }
 
-func (f *currentFieldConfig) decode(from string, to reflect.Type) (value reflect.Value, err error) {
-	switch f.Encoding {
+// decode is called when reading an Excel file
+func (f *activeFieldTags) decode(from string, to reflect.Type) (value reflect.Value, err error) {
+	switch f.EncodingIn() {
 	case "json":
 		value, err = convert.ToJsonValue(from, to)
 	default:
 		if f.FieldType == timeType {
-			dt, err := convert.ToLayoutTime(f.Format, from)
+			dt, err := convert.ToLayoutTime(f.FormatIn(), from)
 			if err != nil {
 				return reflect.Value{}, nil
 			}
 			return reflect.ValueOf(dt), err
 		} else {
-			value, err = convert.ToValue(from, to)
+			if len(from) == 0 {
+				value = reflect.ValueOf(f.DefaultValueIn())
+			} else {
+				value, err = convert.ToValue(from, to)
+			}
 		}
 	}
 	return
 }
 
-func (f *currentFieldConfig) toCellValue(from interface{}) interface{} {
+// toCellValue is called when writing an Excel file
+func (f *activeFieldTags) toCellValue(from interface{}) interface{} {
 
 	// Field of type Slice or Array
 	if f.FieldType.Kind() == reflect.Slice || f.FieldType.Kind() == reflect.Array {
 		slice := reflect.ValueOf(from)
-		values := make([]string, slice.Len())
+		var values []string
 		for i := 0; i < slice.Len(); i++ {
 			es, err := f.encode(slice.Index(i).Interface(), reflect.TypeOf(""))
 			if err != nil {
 				return nil
 			}
-			values[i] = convert.ToValidString(es)
+			values = append(values, convert.ToValidString(es))
 		}
-		return values
+		return strings.Join(values, f.SplitOut())
 	}
 
 	// Field of type Pointer
 	if f.FieldType.Kind() == reflect.Pointer {
-		if from == nil {
-			return f.NilValue
-		}
 		return from
 	}
 
@@ -306,14 +434,15 @@ func (f *currentFieldConfig) toCellValue(from interface{}) interface{} {
 	}
 
 	if len(convert.ToValidString(from)) == 0 {
-		return f.DefaultValue
+		return f.DefaultValueOut()
 	} else {
 		return encoded.Interface()
 	}
 }
 
-func (f *currentFieldConfig) encode(from interface{}, fieldType reflect.Type) (value reflect.Value, err error) {
-	switch f.Encoding {
+// toCellValue is called when writing an Excel file
+func (f *activeFieldTags) encode(from interface{}, fieldType reflect.Type) (value reflect.Value, err error) {
+	switch f.EncodingOut() {
 	case "json":
 		j, err := convert.ToJsonString(from)
 		if err != nil {
@@ -327,9 +456,20 @@ func (f *currentFieldConfig) encode(from interface{}, fieldType reflect.Type) (v
 				return reflect.Value{}, err
 			}
 			if dt.Year() == 1 {
-				return reflect.ValueOf(f.DefaultValue), nil
+				return reflect.ValueOf(""), nil
 			}
-			return reflect.ValueOf(dt), nil
+			if len(f.FormatOut()) > 0 {
+				s, err := convert.ToTimeString(dt, f.FormatOut())
+				if err != nil {
+					return reflect.Value{}, err
+				}
+				return reflect.ValueOf(s), nil
+			}
+			s, err := convert.ToTimeString(dt)
+			if err != nil {
+				return reflect.Value{}, err
+			}
+			return reflect.ValueOf(s), nil
 		} else {
 			value, err = convert.ToValue(from, fieldType)
 		}
