@@ -65,11 +65,11 @@ import (
 )
 
 func main() {
-	// Open the employees test file
-	file, _ := excelize.OpenFile(employeesTestFile)
-	defer func() { _ = file.Close() }()
-
-	// Employees container
+    // Open the employees test file
+    file, _ := excelize.OpenFile(employeesTestFile)
+    defer func() { _ = file.Close() }()
+    
+    // Employees container
     var employees []*Employee
 
     // Configure what to read in the Excel file
@@ -116,13 +116,36 @@ func main() {
     
     // Unmarshal employees
     err := excel.Marshal(&employees)
-    if err != nil {
-    t.Error(err)
-    return
+        if err != nil {
+        t.Error(err)
+        return
     }
     
     // Save file
     _ = file.SaveAs(employeesExportFile)
+}
+```
+
+## Customizable Converters
+```go
+type DateTime struct {
+    time.Time
+}
+
+func (date *DateTime) Marshall() (interface{}, error) {
+    return date.Time.Format("20060201"), nil
+}
+
+func (date *DateTime) Unmarshall(s string) (err error) {
+    date.Time, err = time.Parse("20060201", s)
+    return err
+}
+
+type User struct {
+    Id       int       `excel:"Id"`
+    Name     string    `excel:"Name"`
+    Created  DateTime  `excel:"Created"`
+    Modified *DateTime `excel:"Modified"`
 }
 ```
 

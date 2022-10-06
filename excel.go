@@ -55,6 +55,16 @@ func (e *Excel) SetSheetName(sheet string) {
 	}
 }
 
+func (e *Excel) GetSheetName() string {
+	if e.ReaderInfo != nil {
+		return e.ReaderInfo.GetSheetName()
+	}
+	if e.WriterInfo != nil {
+		return e.WriterInfo.GetSheetName()
+	}
+	return ""
+}
+
 func (e *Excel) SetSheetIndex(index int) {
 	if e.ReaderInfo != nil {
 		e.ReaderInfo.SetSheetIndex(index)
@@ -62,6 +72,16 @@ func (e *Excel) SetSheetIndex(index int) {
 	if e.WriterInfo != nil {
 		e.WriterInfo.SetSheetIndex(index)
 	}
+}
+
+func (e *Excel) GetSheetIndex() int {
+	if e.ReaderInfo != nil {
+		return e.ReaderInfo.GetSheetIndex()
+	}
+	if e.WriterInfo != nil {
+		return e.WriterInfo.GetSheetIndex()
+	}
+	return 0
 }
 
 func (e *Excel) SetAxis(axis string) {

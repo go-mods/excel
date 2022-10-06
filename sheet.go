@@ -17,6 +17,14 @@ func (r *ReaderInfo) SetSheetIndex(i int) {
 	setSheetIndex(r.file, &r.Sheet, i)
 }
 
+func (r *ReaderInfo) GetSheetName() string {
+	return getSheetName(r.file, &r.Sheet)
+}
+
+func (r *ReaderInfo) GetSheetIndex() int {
+	return getSheetIndex(r.file, &r.Sheet)
+}
+
 func (r *ReaderInfo) isSheetValid() bool {
 	return isSheetValid(&r.Sheet)
 }
@@ -27,6 +35,14 @@ func (w *WriterInfo) SetSheetName(n string) {
 
 func (w *WriterInfo) SetSheetIndex(i int) {
 	setSheetIndex(w.file, &w.Sheet, i)
+}
+
+func (w *WriterInfo) GetSheetName() string {
+	return getSheetName(w.file, &w.Sheet)
+}
+
+func (w *WriterInfo) GetSheetIndex() int {
+	return getSheetIndex(w.file, &w.Sheet)
 }
 
 func (w *WriterInfo) isSheetValid() bool {
@@ -41,6 +57,14 @@ func setSheetName(file *excelize.File, sheet *Sheet, n string) {
 func setSheetIndex(file *excelize.File, sheet *Sheet, i int) {
 	sheet.Name = file.GetSheetName(i)
 	sheet.Index = file.GetSheetIndex(sheet.Name)
+}
+
+func getSheetName(file *excelize.File, sheet *Sheet) string {
+	return file.GetSheetName(sheet.Index)
+}
+
+func getSheetIndex(file *excelize.File, sheet *Sheet) int {
+	return file.GetSheetIndex(sheet.Name)
 }
 
 func isSheetValid(sheet *Sheet) bool {

@@ -95,9 +95,9 @@ func (w *structWriter) updateColumnIndex(row []string) {
 
 func (w *structWriter) WriteRows(slice any) (err error) {
 
-	// Make sure 'slice' is a Ptr to Slice
+	// Make sure 'slice' is a Pointer to Slice
 	s := reflect.ValueOf(slice)
-	if s.Kind() != reflect.Ptr || s.Elem().Kind() != reflect.Slice {
+	if s.Kind() != reflect.Pointer || s.Elem().Kind() != reflect.Slice {
 		return ErrContainerInvalid
 	}
 	s = s.Elem()
@@ -106,6 +106,7 @@ func (w *structWriter) WriteRows(slice any) (err error) {
 	col, row, _ := excelize.CellNameToCoordinates(w.writerInfo.Axis.Axis)
 
 	// Write title
+	// -----------
 	for _, f := range w.structInfo.Fields {
 		if !f.IgnoreOut() {
 			cell, _ := excelize.CoordinatesToCellName(col+f.TagsOut.columnIndex, row)
@@ -117,6 +118,7 @@ func (w *structWriter) WriteRows(slice any) (err error) {
 	row++
 
 	// Write rows
+	// ----------
 	for i := 0; i < s.Len(); i++ {
 
 		col, _, _ = excelize.CellNameToCoordinates(w.writerInfo.Axis.Axis)
@@ -133,8 +135,11 @@ func (w *structWriter) WriteRows(slice any) (err error) {
 			f := w.structInfo.GetFieldFromFieldIndex(j)
 			if !f.IgnoreOut() {
 				cell, _ := excelize.CoordinatesToCellName(col+f.TagsOut.columnIndex, row)
-				cellValue := f.toCellValue(value.Interface())
-				if err := w.writerInfo.file.SetCellValue(w.writerInfo.Sheet.Name, cell, cellValue); err != nil {
+				cellValue, err := f.toCellValue(value.Interface())
+				if err != nil {
+					return err
+				}
+				if err = w.writerInfo.file.SetCellValue(w.writerInfo.Sheet.Name, cell, cellValue); err != nil {
 					return err
 				}
 			}

@@ -320,7 +320,88 @@ func TestActiveFieldTags_Required(t *testing.T) {
 
 	err := inExcel.Unmarshal(&simpleUsers)
 	if err != excel.ErrColumnRequired {
-		t.Error("Required column  error")
+		t.Error("Required column error")
+		return
+	}
+}
+
+type DateTime struct {
+	time.Time
+}
+
+func (date *DateTime) Marshall() (interface{}, error) {
+	return date.Time.Format("20060201"), nil
+}
+
+func (date *DateTime) Unmarshall(s string) (err error) {
+	date.Time, err = time.Parse("20060201", s)
+	return err
+}
+
+func TestConverter(t *testing.T) {
+
+	type SimpleUser struct {
+		Id       int       `excel:"Id"`
+		Name     string    `excel:"Name"`
+		Created  DateTime  `excel:"Created"`
+		Modified *DateTime `excel:"Modified"`
+	}
+
+	now := time.Date(2022, 12, 31, 0, 0, 0, 0, time.UTC)
+	later := now.AddDate(1, 0, 0)
+
+	var simpleUsers []*SimpleUser
+	user1 := &SimpleUser{Id: 1, Name: "One", Created: DateTime{now}, Modified: &DateTime{later}}
+	user2 := &SimpleUser{Id: 2, Name: "two", Created: DateTime{now}, Modified: &DateTime{later}}
+	user13 := &SimpleUser{Id: 3, Name: "three", Created: DateTime{now}, Modified: &DateTime{later}}
+	simpleUsers = append(simpleUsers, user1, user2, user13)
+
+	file := excelize.NewFile()
+	defer func() { _ = file.Close() }()
+
+	outExcel, _ := excel.NewWriter(file)
+	outExcel.SetSheetName(file.GetSheetName(file.GetActiveSheetIndex()))
+	outExcel.SetAxis("A1")
+
+	err := outExcel.Marshal(&simpleUsers)
+	if err != nil {
+		t.Error("Marshal error")
+		return
+	}
+
+	dateValue, _ := file.GetCellValue(outExcel.GetSheetName(), "C2")
+
+	if dateValue != "20223112" {
+		t.Error("Marshal() error")
+		return
+	}
+
+	var users []*SimpleUser
+
+	inExcel, _ := excel.NewReader(file)
+	inExcel.SetSheetName(outExcel.GetSheetName())
+	inExcel.SetAxis("A1")
+
+	_ = inExcel.Unmarshal(&users)
+
+	if len(users) != 3 {
+		t.Error("Unmarshal() error")
+		return
+	}
+	if users[0].Id != simpleUsers[0].Id {
+		t.Error("Unmarshal() error")
+		return
+	}
+	if users[0].Name != simpleUsers[0].Name {
+		t.Error("Unmarshal() error")
+		return
+	}
+	if users[0].Created.Time.Year() != simpleUsers[0].Created.Time.Year() || users[0].Created.Time.Month() != simpleUsers[0].Created.Time.Month() || users[0].Created.Time.Day() != simpleUsers[0].Created.Time.Day() {
+		t.Error("Unmarshal() error")
+		return
+	}
+	if users[0].Modified.Time.Year() != simpleUsers[0].Modified.Time.Year() || users[0].Modified.Time.Month() != simpleUsers[0].Modified.Time.Month() || users[0].Modified.Time.Day() != simpleUsers[0].Modified.Time.Day() {
+		t.Error("Unmarshal() error")
 		return
 	}
 }

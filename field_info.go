@@ -17,6 +17,18 @@ type FieldInfo struct {
 	TagsOut *FieldTags
 }
 
+// Marshaller can be implemented by any value that has a Marshal method
+// This converter is used to convert the value to the desired representation
+type Marshaller interface {
+	Marshall() (interface{}, error)
+}
+
+// Unmarshaller can be implemented by any value that has an Unmarshall method
+// This converter is used to convert the value to the desired representation
+type Unmarshaller interface {
+	Unmarshall(s string) error
+}
+
 func getFieldsInfos(s *StructInfo) []*FieldInfo {
 
 	fieldsCount := s.StructType.NumField()
@@ -90,6 +102,24 @@ var timeType = reflect.TypeOf((*time.Time)(nil)).Elem()
 // toValue is called when reading an Excel file
 func (f *FieldInfo) toValue(from string) (value reflect.Value, err error) {
 
+	// Converter call
+	if f.FieldType.Kind() == reflect.Pointer {
+		vp := reflect.New(f.FieldType.Elem())
+		if unmarshall, ok := vp.Interface().(Unmarshaller); ok {
+			err = unmarshall.Unmarshall(from)
+			return reflect.ValueOf(vp.Interface()), err
+		}
+	}
+
+	// Converter call
+	if f.FieldType.Kind() == reflect.Struct {
+		vp := reflect.New(f.FieldType)
+		if unmarshall, ok := vp.Interface().(Unmarshaller); ok {
+			err = unmarshall.Unmarshall(from)
+			return reflect.ValueOf(vp.Elem().Interface()), err
+		}
+	}
+
 	// Field of type Slice or Array
 	if f.FieldType.Kind() == reflect.Slice || f.FieldType.Kind() == reflect.Array {
 		if len(from) > 0 {
@@ -149,8 +179,27 @@ func (f *FieldInfo) decode(from string, to reflect.Type) (value reflect.Value, e
 	return
 }
 
-// toCellValue is called when writing an Excel file
-func (f *FieldInfo) toCellValue(from interface{}) interface{} {
+// toCellValue is called when writing to an Excel file
+func (f *FieldInfo) toCellValue(from interface{}) (interface{}, error) {
+
+	// Converter call for pointer to struct
+	if f.FieldType.Kind() == reflect.Pointer {
+		vp := reflect.New(f.FieldType).Elem()
+		vp.Set(reflect.ValueOf(from))
+		if marshall, ok := vp.Interface().(Marshaller); ok {
+			vi, err := marshall.Marshall()
+			return reflect.ValueOf(vi), err
+		}
+	}
+	// Converter call for struct
+	if f.FieldType.Kind() == reflect.Struct {
+		vp := reflect.New(f.FieldType)
+		vp.Elem().Set(reflect.ValueOf(from))
+		if marshall, ok := vp.Interface().(Marshaller); ok {
+			vi, err := marshall.Marshall()
+			return reflect.ValueOf(vi), err
+		}
+	}
 
 	// Field of type Slice or Array
 	if f.FieldType.Kind() == reflect.Slice || f.FieldType.Kind() == reflect.Array {
@@ -159,28 +208,28 @@ func (f *FieldInfo) toCellValue(from interface{}) interface{} {
 		for i := 0; i < slice.Len(); i++ {
 			es, err := f.encode(slice.Index(i).Interface(), reflect.TypeOf(""))
 			if err != nil {
-				return nil
+				return nil, err
 			}
 			values = append(values, convert.ToValidString(es))
 		}
-		return strings.Join(values, f.SplitOut())
+		return strings.Join(values, f.SplitOut()), nil
 	}
 
 	// Field of type AsPointer
 	if f.FieldType.Kind() == reflect.Pointer {
-		return from
+		return from, nil
 	}
 
 	// Encode the value
 	encoded, err := f.encode(from, f.FieldType)
 	if err != nil {
-		return nil
+		return nil, err
 	}
 
 	if len(convert.ToValidString(from)) == 0 {
-		return f.DefaultValueOut()
+		return f.DefaultValueOut(), nil
 	} else {
-		return encoded.Interface()
+		return encoded.Interface(), nil
 	}
 }
 
