@@ -3,12 +3,10 @@ module github.com/go-mods/excel
 go 1.19
 
 require (
-	github.com/go-mods/convert v0.0.0-20221004200105-c1c119c29c42
-	github.com/go-mods/tags v0.0.0-20220929151923-36e72c21e3a7
+	github.com/go-mods/convert v0.0.0-20221006142555-24e3dca7390f
+	github.com/go-mods/tags v0.0.0-20221007075718-b7edfe08a0bd
 	github.com/xuri/excelize/v2 v2.6.1
 )
-
-replace github.com/go-mods/convert => ../convert
 
 require (
 	github.com/golang-module/carbon/v2 v2.1.9 // indirect

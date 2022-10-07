@@ -1,8 +1,10 @@
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
-github.com/go-mods/tags v0.0.0-20220929151923-36e72c21e3a7 h1:RkUqoJVOC1pi6Uwy7Xj778ZREhAqsYq1J3uQIGodt7g=
-github.com/go-mods/tags v0.0.0-20220929151923-36e72c21e3a7/go.mod h1:zP9PnTFJdTZ1W4xgColNk2VjNIXJgUjjUWEJto1nhJI=
+github.com/go-mods/convert v0.0.0-20221006142555-24e3dca7390f h1:dAt78JWgQQwAgIE07BMAFZpDtsO9QIK8K9sSqT9fWns=
+github.com/go-mods/convert v0.0.0-20221006142555-24e3dca7390f/go.mod h1:UDPjsF1lMuaQ5UG/kiqWu5qc4yJhPNB7ZU1NL6cOlAI=
+github.com/go-mods/tags v0.0.0-20221007075718-b7edfe08a0bd h1:hFfXRJ18qLQZMBUD/p2GoREqIXxmp5Ih/lrHQe08c6I=
+github.com/go-mods/tags v0.0.0-20221007075718-b7edfe08a0bd/go.mod h1:zP9PnTFJdTZ1W4xgColNk2VjNIXJgUjjUWEJto1nhJI=
 github.com/golang-module/carbon/v2 v2.1.9 h1:OWkhYzTTPe+jPOUEL2JkvGwf6bKNQJoh4LVT1LUay80=
 github.com/golang-module/carbon/v2 v2.1.9/go.mod h1:NF5unWf838+pyRY0o+qZdIwBMkFf7w0hmLIguLiEpzU=
 github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826 h1:RWengNIwukTxcDr9M+97sNutRR1RKhG96O6jWumTTnw=
