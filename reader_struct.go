@@ -110,7 +110,9 @@ func (r *structReader) unmarshallRow(row []string) (value reflect.Value, err err
 				value = reflect.ValueOf(fieldConfig.DefaultValueIn())
 			}
 
-			r.container.setFieldValue(containerElement, fieldConfig.FieldIndex, value.Convert(fieldConfig.FieldType))
+			if value.IsValid() {
+				r.container.setFieldValue(containerElement, fieldConfig.FieldIndex, value.Convert(fieldConfig.FieldType))
+			}
 		}
 	}
 
