@@ -72,9 +72,6 @@ func getFieldsInfos(s *StructInfo) []*FieldInfo {
 	for i := 0; i < fieldsCount; i++ {
 
 		field := s.StructType.Field(i)
-		if field.PkgPath != "" {
-			continue
-		}
 
 		// Get tags from struct
 		fieldInfo := &FieldInfo{
