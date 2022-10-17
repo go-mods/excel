@@ -44,6 +44,9 @@ func (r *structReader) Unmarshall() error {
 		if err != nil {
 			break
 		}
+		if row == nil {
+			break
+		}
 
 		// Title row
 		if rowIndex == 0 {
