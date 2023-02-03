@@ -76,10 +76,18 @@ func (e *Excel) SetSheetIndex(index int) {
 
 func (e *Excel) GetSheetIndex() int {
 	if e.ReaderInfo != nil {
-		return e.ReaderInfo.GetSheetIndex()
+		i, err := e.ReaderInfo.GetSheetIndex()
+		if err != nil {
+			return 0
+		}
+		return i
 	}
 	if e.WriterInfo != nil {
-		return e.WriterInfo.GetSheetIndex()
+		i, err := e.WriterInfo.GetSheetIndex()
+		if err != nil {
+			return 0
+		}
+		return i
 	}
 	return 0
 }
