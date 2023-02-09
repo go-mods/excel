@@ -5,6 +5,7 @@ import "reflect"
 // Writer interface
 type Writer interface {
 	Marshall(data any) error
+	SetColumnsOptions(options map[string]*FieldTags)
 }
 
 // newWriter create the appropriate writer

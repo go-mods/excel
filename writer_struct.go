@@ -58,6 +58,13 @@ func (w *structWriter) Marshall(data any) error {
 	return nil
 }
 
+func (w *structWriter) SetColumnsOptions(options map[string]*FieldTags) {
+	// Loop throw all fields in StructInfo
+	for _, field := range w.structInfo.Fields {
+		w.structInfo.freeze(options[field.Name], field.TagsOut)
+	}
+}
+
 func (w *structWriter) updateColumnIndex(row []string) {
 	// Initialize all fields index
 	for _, f := range w.structInfo.Fields {

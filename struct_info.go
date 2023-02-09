@@ -80,12 +80,13 @@ func (s *StructInfo) freeze(from *FieldTags, to *FieldTags) {
 		to.Encoding = from.Encoding
 		to.Split = from.Split
 		to.IsRequired = from.IsRequired
+		to.Ignore = from.Ignore
 	}
 }
 
 func (s *StructInfo) GetFieldFromFieldIndex(index int) *FieldInfo {
 	for _, f := range s.Fields {
-		if f.FieldIndex == index {
+		if f.Index == index {
 			return f
 		}
 	}

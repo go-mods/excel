@@ -1,16 +1,16 @@
 package excel
 
 import (
+	"github.com/go-mods/convert"
 	"reflect"
 	"strings"
 	"time"
-
-	"github.com/go-mods/convert"
 )
 
 type FieldInfo struct {
-	FieldIndex int
-	FieldType  reflect.Type
+	Index int
+	Type  reflect.Type
+	Name  string
 
 	Tags    *FieldTags
 	TagsIn  *FieldTags
@@ -75,11 +75,12 @@ func getFieldsInfos(s *StructInfo) []*FieldInfo {
 
 		// Get tags from struct
 		fieldInfo := &FieldInfo{
-			FieldIndex: i,
-			FieldType:  field.Type,
-			Tags:       s.filterTags(field, mainKey),
-			TagsIn:     s.filterTags(field, inKey),
-			TagsOut:    s.filterTags(field, outKey),
+			Index:   i,
+			Type:    field.Type,
+			Name:    field.Name,
+			Tags:    s.filterTags(field, mainKey),
+			TagsIn:  s.filterTags(field, inKey),
+			TagsOut: s.filterTags(field, outKey),
 		}
 
 		// Overwrite with tags from interfaces
@@ -100,8 +101,8 @@ var timeType = reflect.TypeOf((*time.Time)(nil)).Elem()
 func (f *FieldInfo) toValue(from string) (value reflect.Value, err error) {
 
 	// Converter call
-	if f.FieldType.Kind() == reflect.Pointer {
-		vp := reflect.New(f.FieldType.Elem())
+	if f.Type.Kind() == reflect.Pointer {
+		vp := reflect.New(f.Type.Elem())
 		if unmarshall, ok := vp.Interface().(Unmarshaller); ok {
 			err = unmarshall.Unmarshall(from)
 			return reflect.ValueOf(vp.Interface()), err
@@ -109,8 +110,8 @@ func (f *FieldInfo) toValue(from string) (value reflect.Value, err error) {
 	}
 
 	// Converter call
-	if f.FieldType.Kind() == reflect.Struct {
-		vp := reflect.New(f.FieldType)
+	if f.Type.Kind() == reflect.Struct {
+		vp := reflect.New(f.Type)
 		if unmarshall, ok := vp.Interface().(Unmarshaller); ok {
 			err = unmarshall.Unmarshall(from)
 			return reflect.ValueOf(vp.Elem().Interface()), err
@@ -118,26 +119,26 @@ func (f *FieldInfo) toValue(from string) (value reflect.Value, err error) {
 	}
 
 	// Field of type Slice or Array
-	if f.FieldType.Kind() == reflect.Slice || f.FieldType.Kind() == reflect.Array {
+	if f.Type.Kind() == reflect.Slice || f.Type.Kind() == reflect.Array {
 		if len(from) > 0 {
 			values := strings.Split(convert.ToValidString(from), f.SplitIn())
-			value = reflect.MakeSlice(reflect.SliceOf(f.FieldType.Elem()), 0, len(values))
+			value = reflect.MakeSlice(reflect.SliceOf(f.Type.Elem()), 0, len(values))
 			for _, vs := range values {
-				v, err := f.decode(vs, f.FieldType.Elem())
+				v, err := f.decode(vs, f.Type.Elem())
 				if err != nil {
 					return reflect.Value{}, err
 				}
 				value = reflect.Append(value, v)
 			}
 		} else {
-			return reflect.MakeSlice(reflect.SliceOf(f.FieldType.Elem()), 0, 0), nil
+			return reflect.MakeSlice(reflect.SliceOf(f.Type.Elem()), 0, 0), nil
 		}
 		return
 	}
 
 	// Field of type AsPointer
-	if f.FieldType.Kind() == reflect.Pointer {
-		value, err = f.decode(from, f.FieldType)
+	if f.Type.Kind() == reflect.Pointer {
+		value, err = f.decode(from, f.Type)
 		if err != nil {
 			return reflect.Value{}, err
 		}
@@ -145,7 +146,7 @@ func (f *FieldInfo) toValue(from string) (value reflect.Value, err error) {
 	}
 
 	// Decode the string
-	value, err = f.decode(from, f.FieldType)
+	value, err = f.decode(from, f.Type)
 	if err != nil {
 		return reflect.Value{}, err
 	}
@@ -159,7 +160,7 @@ func (f *FieldInfo) decode(from string, to reflect.Type) (value reflect.Value, e
 	case "json":
 		value, err = convert.ToJsonValue(from, to)
 	default:
-		if f.FieldType == timeType {
+		if f.Type == timeType {
 			dt, err := convert.ToLayoutTime(f.FormatIn(), from)
 			if err != nil {
 				return reflect.Value{}, nil
@@ -180,8 +181,8 @@ func (f *FieldInfo) decode(from string, to reflect.Type) (value reflect.Value, e
 func (f *FieldInfo) toCellValue(from interface{}) (interface{}, error) {
 
 	// Converter call for pointer to struct
-	if f.FieldType.Kind() == reflect.Pointer {
-		vp := reflect.New(f.FieldType).Elem()
+	if f.Type.Kind() == reflect.Pointer {
+		vp := reflect.New(f.Type).Elem()
 		vp.Set(reflect.ValueOf(from))
 		if marshall, ok := vp.Interface().(Marshaller); ok {
 			vi, err := marshall.Marshall()
@@ -189,8 +190,8 @@ func (f *FieldInfo) toCellValue(from interface{}) (interface{}, error) {
 		}
 	}
 	// Converter call for struct
-	if f.FieldType.Kind() == reflect.Struct {
-		vp := reflect.New(f.FieldType)
+	if f.Type.Kind() == reflect.Struct {
+		vp := reflect.New(f.Type)
 		vp.Elem().Set(reflect.ValueOf(from))
 		if marshall, ok := vp.Interface().(Marshaller); ok {
 			vi, err := marshall.Marshall()
@@ -199,7 +200,7 @@ func (f *FieldInfo) toCellValue(from interface{}) (interface{}, error) {
 	}
 
 	// Field of type Slice or Array
-	if f.FieldType.Kind() == reflect.Slice || f.FieldType.Kind() == reflect.Array {
+	if f.Type.Kind() == reflect.Slice || f.Type.Kind() == reflect.Array {
 		slice := reflect.ValueOf(from)
 		var values []string
 		for i := 0; i < slice.Len(); i++ {
@@ -213,12 +214,12 @@ func (f *FieldInfo) toCellValue(from interface{}) (interface{}, error) {
 	}
 
 	// Field of type AsPointer
-	if f.FieldType.Kind() == reflect.Pointer {
+	if f.Type.Kind() == reflect.Pointer {
 		return from, nil
 	}
 
 	// Encode the value
-	encoded, err := f.encode(from, f.FieldType)
+	encoded, err := f.encode(from, f.Type)
 	if err != nil {
 		return nil, err
 	}
@@ -240,7 +241,7 @@ func (f *FieldInfo) encode(from interface{}, fieldType reflect.Type) (value refl
 		}
 		return reflect.ValueOf(j), nil
 	default:
-		if f.FieldType == timeType {
+		if f.Type == timeType {
 			dt, err := convert.ToTime(from)
 			if err != nil {
 				return reflect.Value{}, err

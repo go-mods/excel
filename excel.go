@@ -10,7 +10,7 @@ type Excel struct {
 	WriterInfo *WriterInfo
 }
 
-func (e *Excel) Marshal(container any) error {
+func (e *Excel) Marshal(container any, options ...map[string]*FieldTags) error {
 	// Validate excel input
 	err := e.Validate()
 	if err != nil {
@@ -21,6 +21,11 @@ func (e *Excel) Marshal(container any) error {
 	writer, err := newWriter(e.WriterInfo, container)
 	if err != nil {
 		return err
+	}
+
+	// Set column options
+	if len(options) > 0 {
+		writer.SetColumnsOptions(options[0])
 	}
 
 	// unmarshall

@@ -12,3 +12,7 @@ func newMapWriter(_ *WriterInfo, _ reflect.Value) (*mapWriter, error) {
 func (w *mapWriter) Marshall(data any) error {
 	return ErrNotImplemented
 }
+
+func (w *mapWriter) SetColumnsOptions(options map[string]*FieldTags) {
+	panic(ErrNotImplemented.Error())
+}
