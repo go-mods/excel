@@ -12,3 +12,7 @@ func newMapReader(_ *ReaderInfo, _ reflect.Value) (*mapReader, error) {
 func (r *mapReader) Unmarshall() error {
 	return ErrNotImplemented
 }
+
+func (w *mapReader) SetColumnsOptions(options map[string]*FieldTags) {
+	panic(ErrNotImplemented.Error())
+}

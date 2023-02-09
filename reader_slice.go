@@ -12,3 +12,7 @@ func newSliceReader(_ *ReaderInfo, _ reflect.Value) (*sliceReader, error) {
 func (r *sliceReader) Unmarshall() error {
 	return ErrNotImplemented
 }
+
+func (w *sliceReader) SetColumnsOptions(options map[string]*FieldTags) {
+	panic(ErrNotImplemented.Error())
+}

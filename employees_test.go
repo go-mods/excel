@@ -70,7 +70,7 @@ func TestReadEmployees(t *testing.T) {
 func TestWriteEmployeesCustomOutput(t *testing.T) {
 	// Create a new Excel file
 	file := excelize.NewFile()
-	file.SetSheetName(file.GetSheetName(file.GetActiveSheetIndex()), employeesSheet)
+	_ = file.SetSheetName(file.GetSheetName(file.GetActiveSheetIndex()), employeesSheet)
 	defer func() { _ = file.Close() }()
 
 	// Employees container
@@ -106,12 +106,28 @@ func TestWriteEmployeesCustomOutput(t *testing.T) {
 
 	// Save file
 	_ = file.SaveAs(employeesExportFile)
+
+	// Configure what to read in the Excel file
+	fileRead, _ := excelize.OpenFile(employeesExportFile)
+	defer func() { _ = fileRead.Close() }()
+	xl, _ = excel.NewReader(fileRead)
+	xl.SetSheetName(employeesSheet)
+	xl.SetAxis(employeesAxis)
+
+	// Read the file
+	var employeesRead []*Employee
+	var customInput = customOutput
+	err = xl.Unmarshal(&employeesRead, customInput)
+	if err != nil {
+		t.Error(err)
+		return
+	}
 }
 
 func TestWriteEmployees(t *testing.T) {
 	// Create a new Excel file
 	file := excelize.NewFile()
-	file.SetSheetName(file.GetSheetName(file.GetActiveSheetIndex()), employeesSheet)
+	_ = file.SetSheetName(file.GetSheetName(file.GetActiveSheetIndex()), employeesSheet)
 	defer func() { _ = file.Close() }()
 
 	// Employees container

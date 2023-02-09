@@ -10,7 +10,7 @@ type Sheet struct {
 }
 
 func (r *ReaderInfo) SetSheetName(n string) {
-	setSheetName(r.file, &r.Sheet, n)
+	_ = setSheetName(r.file, &r.Sheet, n)
 }
 
 func (r *ReaderInfo) SetSheetIndex(i int) {
@@ -30,7 +30,7 @@ func (r *ReaderInfo) isSheetValid() bool {
 }
 
 func (w *WriterInfo) SetSheetName(n string) {
-	setSheetName(w.file, &w.Sheet, n)
+	_ = setSheetName(w.file, &w.Sheet, n)
 }
 
 func (w *WriterInfo) SetSheetIndex(i int) {

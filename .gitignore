@@ -146,4 +146,7 @@ fabric.properties
 # Coverage
 coverage.*
 
+# Generated excel files
+*.gen.xlsx
+
 *todo*

@@ -75,6 +75,13 @@ func (r *structReader) Unmarshall() error {
 	return rows.Close()
 }
 
+func (w *structReader) SetColumnsOptions(options map[string]*FieldTags) {
+	// Loop throw all fields in StructInfo
+	for _, field := range w.structInfo.Fields {
+		w.structInfo.freeze(options[field.Name], field.TagsIn)
+	}
+}
+
 func (r *structReader) updateColumnIndex(row []string) error {
 	// Initialize all fields index
 	for _, f := range r.structInfo.Fields {

@@ -7,6 +7,7 @@ import (
 // Reader interface
 type Reader interface {
 	Unmarshall() error
+	SetColumnsOptions(options map[string]*FieldTags)
 }
 
 // newReader create the appropriate reader

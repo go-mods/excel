@@ -33,7 +33,7 @@ func (e *Excel) Marshal(container any, options ...map[string]*FieldTags) error {
 	return err
 }
 
-func (e *Excel) Unmarshal(container any) error {
+func (e *Excel) Unmarshal(container any, options ...map[string]*FieldTags) error {
 	// Validate excel input
 	err := e.Validate()
 	if err != nil {
@@ -44,6 +44,11 @@ func (e *Excel) Unmarshal(container any) error {
 	reader, err := newReader(e.ReaderInfo, container)
 	if err != nil {
 		return err
+	}
+
+	// Set column options
+	if len(options) > 0 {
+		reader.SetColumnsOptions(options[0])
 	}
 
 	// unmarshall
