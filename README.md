@@ -1,5 +1,9 @@
 # excel
 
+[![GoDoc](https://godoc.org/github.com/go-mods/excel?status.svg)](https://godoc.org/github.com/go-mods/excel)
+[![Go Report Card](https://goreportcard.com/badge/github.com/go-mods/excel)](https://goreportcard.com/report/github.com/go-mods/excel)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/go-mods/excel/blob/master/LICENSE)
+
 Marshal and Unmarshal Excel file with the help of [excelize](https://github.com/qax-os/excelize).
 
 ## Installation
