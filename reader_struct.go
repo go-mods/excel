@@ -4,32 +4,32 @@ import (
 	"reflect"
 )
 
-type structReader struct {
-	readerInfo *ReaderInfo
+type StructReader struct {
+	ReaderInfo *ReaderInfo
 	container  *ContainerInfo
-	structInfo *StructInfo
+	StructInfo *StructInfo
 }
 
-func newStructReader(readerInfo *ReaderInfo, containerValue reflect.Value) (*structReader, error) {
+func newStructReader(readerInfo *ReaderInfo, containerValue reflect.Value) (*StructReader, error) {
 	containerTypeElem := reflect.Indirect(containerValue).Type().Elem()
 	c := &ContainerInfo{
 		value:     containerValue,
 		typeElem:  containerTypeElem,
 		isPointer: containerTypeElem.Kind() == reflect.Pointer,
 	}
-	r := &structReader{
-		readerInfo: readerInfo,
+	r := &StructReader{
+		ReaderInfo: readerInfo,
 		container:  c,
-		structInfo: getStructInfo(c),
+		StructInfo: getStructInfo(c),
 	}
 	return r, nil
 }
 
 // Unmarshall must be called when reading an Excel file
-func (r *structReader) Unmarshall() error {
+func (r *StructReader) Unmarshall() error {
 
 	// get excel row
-	rows, err := r.readerInfo.file.Rows(r.readerInfo.Sheet.Name)
+	rows, err := r.ReaderInfo.file.Rows(r.ReaderInfo.Sheet.Name)
 	if err != nil {
 		return err
 	}
@@ -75,16 +75,16 @@ func (r *structReader) Unmarshall() error {
 	return rows.Close()
 }
 
-func (w *structReader) SetColumnsOptions(options map[string]*FieldTags) {
+func (w *StructReader) SetColumnsOptions(options map[string]*FieldTags) {
 	// Loop throw all fields in StructInfo
-	for _, field := range w.structInfo.Fields {
-		w.structInfo.freeze(options[field.Name], field.TagsIn)
+	for _, field := range w.StructInfo.Fields {
+		w.StructInfo.freeze(options[field.Name], field.TagsIn)
 	}
 }
 
-func (r *structReader) updateColumnIndex(row []string) error {
+func (r *StructReader) updateColumnIndex(row []string) error {
 	// Initialize all fields index
-	for _, f := range r.structInfo.Fields {
+	for _, f := range r.StructInfo.Fields {
 		// Loop throw all columns
 		for colIndex, cell := range row {
 			if f.ColumnNameIn() == cell && !f.IgnoreIn() {
@@ -100,12 +100,12 @@ func (r *structReader) updateColumnIndex(row []string) error {
 	return nil
 }
 
-func (r *structReader) unmarshallRow(row []string) (value reflect.Value, err error) {
+func (r *StructReader) unmarshallRow(row []string) (value reflect.Value, err error) {
 
 	containerElement := r.container.create()
 
 	// Loop throw all fields
-	for _, fieldConfig := range r.structInfo.Fields {
+	for _, fieldConfig := range r.StructInfo.Fields {
 		if fieldConfig.TagsIn.columnIndex >= 0 {
 
 			if len(row) >= fieldConfig.TagsIn.columnIndex+1 {

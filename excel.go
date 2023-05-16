@@ -8,6 +8,8 @@ type Excel struct {
 	File       *excelize.File
 	ReaderInfo *ReaderInfo
 	WriterInfo *WriterInfo
+
+	StructInfo *StructInfo
 }
 
 func (e *Excel) Marshal(container any, options ...map[string]*FieldTags) error {
@@ -26,6 +28,11 @@ func (e *Excel) Marshal(container any, options ...map[string]*FieldTags) error {
 	// Set column options
 	if len(options) > 0 {
 		writer.SetColumnsOptions(options[0])
+	}
+
+	// Check if writer is a struct writer
+	if _, ok := writer.(*StructWriter); ok {
+		e.StructInfo = writer.(*StructWriter).StructInfo
 	}
 
 	// unmarshall
@@ -49,6 +56,11 @@ func (e *Excel) Unmarshal(container any, options ...map[string]*FieldTags) error
 	// Set column options
 	if len(options) > 0 {
 		reader.SetColumnsOptions(options[0])
+	}
+
+	// Check if reader is a struct reader
+	if _, ok := reader.(*StructReader); ok {
+		e.StructInfo = reader.(*StructReader).StructInfo
 	}
 
 	// unmarshall

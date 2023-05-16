@@ -6,29 +6,29 @@ import (
 	"github.com/xuri/excelize/v2"
 )
 
-type structWriter struct {
-	writerInfo *WriterInfo
-	structInfo *StructInfo
+type StructWriter struct {
+	WriterInfo *WriterInfo
+	StructInfo *StructInfo
 }
 
-func newStructWriter(writerInfo *WriterInfo, containerValue reflect.Value) (*structWriter, error) {
+func newStructWriter(writerInfo *WriterInfo, containerValue reflect.Value) (*StructWriter, error) {
 	containerTypeElem := reflect.Indirect(containerValue).Type().Elem()
 	c := &ContainerInfo{
 		value:     containerValue,
 		typeElem:  containerTypeElem,
 		isPointer: containerTypeElem.Kind() == reflect.Pointer,
 	}
-	r := &structWriter{
-		writerInfo: writerInfo,
-		structInfo: getStructInfo(c),
+	r := &StructWriter{
+		WriterInfo: writerInfo,
+		StructInfo: getStructInfo(c),
 	}
 	return r, nil
 }
 
-func (w *structWriter) Marshall(data any) error {
+func (w *StructWriter) Marshall(data any) error {
 
 	// get excel rows to find titles if exists
-	rows, err := w.writerInfo.file.Rows(w.writerInfo.Sheet.Name)
+	rows, err := w.WriterInfo.file.Rows(w.WriterInfo.Sheet.Name)
 	if err != nil {
 		return err
 	}
@@ -58,16 +58,16 @@ func (w *structWriter) Marshall(data any) error {
 	return nil
 }
 
-func (w *structWriter) SetColumnsOptions(options map[string]*FieldTags) {
+func (w *StructWriter) SetColumnsOptions(options map[string]*FieldTags) {
 	// Loop throw all fields in StructInfo
-	for _, field := range w.structInfo.Fields {
-		w.structInfo.freeze(options[field.Name], field.TagsOut)
+	for _, field := range w.StructInfo.Fields {
+		w.StructInfo.freeze(options[field.Name], field.TagsOut)
 	}
 }
 
-func (w *structWriter) updateColumnIndex(row []string) {
+func (w *StructWriter) updateColumnIndex(row []string) {
 	// Initialize all fields index
-	for _, f := range w.structInfo.Fields {
+	for _, f := range w.StructInfo.Fields {
 		if !f.IgnoreOut() {
 			// Loop throw all columns
 			for colIndex, cell := range row {
@@ -81,7 +81,7 @@ func (w *structWriter) updateColumnIndex(row []string) {
 
 	// Get max column index
 	var maxIndex int = 0
-	for _, f := range w.structInfo.Fields {
+	for _, f := range w.StructInfo.Fields {
 		if !f.IgnoreOut() {
 			if f.TagsOut.columnIndex > maxIndex {
 				maxIndex = f.TagsOut.columnIndex
@@ -90,7 +90,7 @@ func (w *structWriter) updateColumnIndex(row []string) {
 	}
 
 	// Update field column index
-	for _, f := range w.structInfo.Fields {
+	for _, f := range w.StructInfo.Fields {
 		if !f.IgnoreOut() {
 			if f.TagsOut.columnIndex == -1 {
 				f.TagsOut.columnIndex = maxIndex
@@ -100,7 +100,7 @@ func (w *structWriter) updateColumnIndex(row []string) {
 	}
 }
 
-func (w *structWriter) WriteRows(slice any) (err error) {
+func (w *StructWriter) WriteRows(slice any) (err error) {
 
 	// Make sure 'slice' is a Pointer to Slice
 	s := reflect.ValueOf(slice)
@@ -110,14 +110,14 @@ func (w *structWriter) WriteRows(slice any) (err error) {
 	s = s.Elem()
 
 	// Get default coordinates
-	col, row, _ := excelize.CellNameToCoordinates(w.writerInfo.Axis.Axis)
+	col, row, _ := excelize.CellNameToCoordinates(w.WriterInfo.Axis.Axis)
 
 	// Write title
 	// -----------
-	for _, f := range w.structInfo.Fields {
+	for _, f := range w.StructInfo.Fields {
 		if !f.IgnoreOut() {
 			cell, _ := excelize.CoordinatesToCellName(col+f.TagsOut.columnIndex, row)
-			if err := w.writerInfo.file.SetCellValue(w.writerInfo.Sheet.Name, cell, f.ColumnNameOut()); err != nil {
+			if err := w.WriterInfo.file.SetCellValue(w.WriterInfo.Sheet.Name, cell, f.ColumnNameOut()); err != nil {
 				return err
 			}
 		}
@@ -128,7 +128,7 @@ func (w *structWriter) WriteRows(slice any) (err error) {
 	// ----------
 	for i := 0; i < s.Len(); i++ {
 
-		col, _, _ = excelize.CellNameToCoordinates(w.writerInfo.Axis.Axis)
+		col, _, _ = excelize.CellNameToCoordinates(w.WriterInfo.Axis.Axis)
 
 		// data
 		values := s.Index(i)
@@ -139,14 +139,14 @@ func (w *structWriter) WriteRows(slice any) (err error) {
 		// write
 		for j := 0; j < values.NumField(); j++ {
 			value := values.Field(j)
-			f := w.structInfo.GetFieldFromFieldIndex(j)
+			f := w.StructInfo.GetFieldFromFieldIndex(j)
 			if !f.IgnoreOut() {
 				cell, _ := excelize.CoordinatesToCellName(col+f.TagsOut.columnIndex, row)
 				cellValue, err := f.toCellValue(value.Interface())
 				if err != nil {
 					return err
 				}
-				if err = w.writerInfo.file.SetCellValue(w.writerInfo.Sheet.Name, cell, cellValue); err != nil {
+				if err = w.WriterInfo.file.SetCellValue(w.WriterInfo.Sheet.Name, cell, cellValue); err != nil {
 					return err
 				}
 			}

@@ -8,7 +8,7 @@ import (
 
 type StructInfo struct {
 	StructType reflect.Type
-	Fields     []*FieldInfo
+	Fields     FieldInfoList
 }
 
 func getStructInfo(container *ContainerInfo) *StructInfo {

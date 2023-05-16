@@ -7,6 +7,10 @@ import (
 	"time"
 )
 
+// FieldInfoList is a list of FieldInfo
+type FieldInfoList []*FieldInfo
+
+// FieldInfo contains information about the field
 type FieldInfo struct {
 	Index int
 	Type  reflect.Type
@@ -29,10 +33,10 @@ type Unmarshaller interface {
 	Unmarshall(s string) error
 }
 
-func getFieldsInfos(s *StructInfo) []*FieldInfo {
+func getFieldsInfos(s *StructInfo) FieldInfoList {
 
 	fieldsCount := s.StructType.NumField()
-	fieldsInfos := make([]*FieldInfo, 0, fieldsCount)
+	fieldsInfos := make(FieldInfoList, 0, fieldsCount)
 
 	// Check if the ContainerInfo implement FieldsTags, FieldsTagsIn or FieldsTagsOut interface
 	// ------------------------------------------------------------------------------------
@@ -266,4 +270,31 @@ func (f *FieldInfo) encode(from interface{}, fieldType reflect.Type) (value refl
 		}
 	}
 	return
+}
+
+// Count returns the number of fields
+func (f *FieldInfoList) Count() int {
+	return len(*f)
+}
+
+// IgnoredIn returns the number of ignored fields
+func (f *FieldInfoList) IgnoredIn() int {
+	var count int
+	for _, field := range *f {
+		if field.IgnoreIn() {
+			count++
+		}
+	}
+	return count
+}
+
+// IgnoredOut returns the number of ignored fields
+func (f *FieldInfoList) IgnoredOut() int {
+	var count int
+	for _, field := range *f {
+		if field.IgnoreOut() {
+			count++
+		}
+	}
+	return count
 }
