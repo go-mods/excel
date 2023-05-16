@@ -6,29 +6,33 @@ import (
 	"github.com/xuri/excelize/v2"
 )
 
+// StructWriter is the Excel writer for a struct
+// It implements the IWriter interface
 type StructWriter struct {
-	WriterInfo *WriterInfo
-	StructInfo *StructInfo
+	Writer *Writer
+	Struct *Struct
 }
 
-func newStructWriter(writerInfo *WriterInfo, containerValue reflect.Value) (*StructWriter, error) {
+// newStructWriter create the appropriate writer
+func newStructWriter(writerInfo *Writer, containerValue reflect.Value) (*StructWriter, error) {
 	containerTypeElem := reflect.Indirect(containerValue).Type().Elem()
-	c := &ContainerInfo{
-		value:     containerValue,
-		typeElem:  containerTypeElem,
-		isPointer: containerTypeElem.Kind() == reflect.Pointer,
+	c := &Container{
+		Value:   containerValue,
+		Type:    containerTypeElem,
+		Pointer: containerTypeElem.Kind() == reflect.Pointer,
 	}
 	r := &StructWriter{
-		WriterInfo: writerInfo,
-		StructInfo: getStructInfo(c),
+		Writer: writerInfo,
+		Struct: getStruct(c),
 	}
 	return r, nil
 }
 
+// Marshall writes the Excel file from the container
 func (w *StructWriter) Marshall(data any) error {
 
 	// get excel rows to find titles if exists
-	rows, err := w.WriterInfo.file.Rows(w.WriterInfo.Sheet.Name)
+	rows, err := w.Writer.file.Rows(w.Writer.Sheet.Name)
 	if err != nil {
 		return err
 	}
@@ -50,7 +54,7 @@ func (w *StructWriter) Marshall(data any) error {
 	w.updateColumnIndex(titleRow)
 
 	// Write
-	err = w.WriteRows(data)
+	err = w.writeRows(data)
 	if err != nil {
 		return err
 	}
@@ -58,21 +62,21 @@ func (w *StructWriter) Marshall(data any) error {
 	return nil
 }
 
-func (w *StructWriter) SetColumnsOptions(options map[string]*FieldTags) {
-	// Loop throw all fields in StructInfo
-	for _, field := range w.StructInfo.Fields {
-		w.StructInfo.freeze(options[field.Name], field.TagsOut)
+func (w *StructWriter) SetColumnsTags(tags map[string]*Tags) {
+	// Loop throw all fields in Struct
+	for _, field := range w.Struct.Fields {
+		w.Struct.freeze(tags[field.Name], field.WriteTags)
 	}
 }
 
 func (w *StructWriter) updateColumnIndex(row []string) {
 	// Initialize all fields index
-	for _, f := range w.StructInfo.Fields {
-		if !f.IgnoreOut() {
+	for _, f := range w.Struct.Fields {
+		if !f.GetWriteIgnore() {
 			// Loop throw all columns
 			for colIndex, cell := range row {
-				if f.ColumnNameOut() == cell {
-					f.TagsOut.columnIndex = colIndex
+				if f.GetWriteColumnName() == cell {
+					f.WriteTags.index = colIndex
 					break
 				}
 			}
@@ -81,26 +85,26 @@ func (w *StructWriter) updateColumnIndex(row []string) {
 
 	// Get max column index
 	var maxIndex int = 0
-	for _, f := range w.StructInfo.Fields {
-		if !f.IgnoreOut() {
-			if f.TagsOut.columnIndex > maxIndex {
-				maxIndex = f.TagsOut.columnIndex
+	for _, f := range w.Struct.Fields {
+		if !f.GetWriteIgnore() {
+			if f.WriteTags.index > maxIndex {
+				maxIndex = f.WriteTags.index
 			}
 		}
 	}
 
 	// Update field column index
-	for _, f := range w.StructInfo.Fields {
-		if !f.IgnoreOut() {
-			if f.TagsOut.columnIndex == -1 {
-				f.TagsOut.columnIndex = maxIndex
+	for _, f := range w.Struct.Fields {
+		if !f.GetWriteIgnore() {
+			if f.WriteTags.index == -1 {
+				f.WriteTags.index = maxIndex
 				maxIndex++
 			}
 		}
 	}
 }
 
-func (w *StructWriter) WriteRows(slice any) (err error) {
+func (w *StructWriter) writeRows(slice any) (err error) {
 
 	// Make sure 'slice' is a Pointer to Slice
 	s := reflect.ValueOf(slice)
@@ -110,14 +114,14 @@ func (w *StructWriter) WriteRows(slice any) (err error) {
 	s = s.Elem()
 
 	// Get default coordinates
-	col, row, _ := excelize.CellNameToCoordinates(w.WriterInfo.Axis.Axis)
+	col, row, _ := excelize.CellNameToCoordinates(w.Writer.Axis.Axis)
 
 	// Write title
 	// -----------
-	for _, f := range w.StructInfo.Fields {
-		if !f.IgnoreOut() {
-			cell, _ := excelize.CoordinatesToCellName(col+f.TagsOut.columnIndex, row)
-			if err := w.WriterInfo.file.SetCellValue(w.WriterInfo.Sheet.Name, cell, f.ColumnNameOut()); err != nil {
+	for _, f := range w.Struct.Fields {
+		if !f.GetWriteIgnore() {
+			cell, _ := excelize.CoordinatesToCellName(col+f.WriteTags.index, row)
+			if err := w.Writer.file.SetCellValue(w.Writer.Sheet.Name, cell, f.GetWriteColumnName()); err != nil {
 				return err
 			}
 		}
@@ -128,7 +132,7 @@ func (w *StructWriter) WriteRows(slice any) (err error) {
 	// ----------
 	for i := 0; i < s.Len(); i++ {
 
-		col, _, _ = excelize.CellNameToCoordinates(w.WriterInfo.Axis.Axis)
+		col, _, _ = excelize.CellNameToCoordinates(w.Writer.Axis.Axis)
 
 		// data
 		values := s.Index(i)
@@ -139,14 +143,14 @@ func (w *StructWriter) WriteRows(slice any) (err error) {
 		// write
 		for j := 0; j < values.NumField(); j++ {
 			value := values.Field(j)
-			f := w.StructInfo.GetFieldFromFieldIndex(j)
-			if !f.IgnoreOut() {
-				cell, _ := excelize.CoordinatesToCellName(col+f.TagsOut.columnIndex, row)
+			f := w.Struct.GetField(j)
+			if !f.GetWriteIgnore() {
+				cell, _ := excelize.CoordinatesToCellName(col+f.WriteTags.index, row)
 				cellValue, err := f.toCellValue(value.Interface())
 				if err != nil {
 					return err
 				}
-				if err = w.WriterInfo.file.SetCellValue(w.WriterInfo.Sheet.Name, cell, cellValue); err != nil {
+				if err = w.Writer.file.SetCellValue(w.Writer.Sheet.Name, cell, cellValue); err != nil {
 					return err
 				}
 			}

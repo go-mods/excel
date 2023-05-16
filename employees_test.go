@@ -7,6 +7,13 @@ import (
 	"time"
 )
 
+var (
+	employeesTestFile   = "./test/employees.xlsx"
+	employeesExportFile = "./test/employees.gen.xlsx"
+	employeesSheet      = "Employees"
+	employeesAxis       = "A1"
+)
+
 type Employee struct {
 	// use field name as default column name
 	ID int
@@ -86,16 +93,16 @@ func TestWriteEmployeesCustomOutput(t *testing.T) {
 	xl.SetAxis(employeesAxis)
 
 	// Set custom output
-	var customOutput = map[string]*excel.FieldTags{}
-	customOutput["ID"] = &excel.FieldTags{ColumnName: "id"}
-	customOutput["First"] = &excel.FieldTags{Ignore: true}
-	customOutput["Last"] = &excel.FieldTags{Ignore: true}
-	customOutput["ContactNumber"] = &excel.FieldTags{Ignore: true}
-	customOutput["Age"] = &excel.FieldTags{Ignore: true}
-	customOutput["BirthDate"] = &excel.FieldTags{Ignore: true}
-	customOutput["Salary"] = &excel.FieldTags{Ignore: true}
-	customOutput["Staff"] = &excel.FieldTags{Ignore: true}
-	customOutput["EncodedName"] = &excel.FieldTags{Ignore: true}
+	var customOutput = map[string]*excel.Tags{}
+	customOutput["ID"] = &excel.Tags{Column: "id"}
+	customOutput["First"] = &excel.Tags{Ignore: true}
+	customOutput["Last"] = &excel.Tags{Ignore: true}
+	customOutput["ContactNumber"] = &excel.Tags{Ignore: true}
+	customOutput["Age"] = &excel.Tags{Ignore: true}
+	customOutput["BirthDate"] = &excel.Tags{Ignore: true}
+	customOutput["Salary"] = &excel.Tags{Ignore: true}
+	customOutput["Staff"] = &excel.Tags{Ignore: true}
+	customOutput["EncodedName"] = &excel.Tags{Ignore: true}
 
 	// Unmarshal employees
 	err := xl.Marshal(&employees, customOutput)

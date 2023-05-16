@@ -5,14 +5,14 @@ import "reflect"
 type sliceWriter struct {
 }
 
-func newSliceWriter(_ *WriterInfo, _ reflect.Value) (*sliceWriter, error) {
+func newSliceWriter(_ *Writer, _ reflect.Value) (*sliceWriter, error) {
 	return nil, ErrNotImplemented
 }
 
-func (w *sliceWriter) Marshall(data any) error {
+func (w *sliceWriter) Marshall(_ any) error {
 	return ErrNotImplemented
 }
 
-func (w *sliceWriter) SetColumnsOptions(options map[string]*FieldTags) {
+func (w *sliceWriter) SetColumnsTags(_ map[string]*Tags) {
 	panic(ErrNotImplemented.Error())
 }

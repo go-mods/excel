@@ -149,4 +149,5 @@ coverage.*
 # Generated excel files
 *.gen.xlsx
 
+# todo files
 *todo*

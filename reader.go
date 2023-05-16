@@ -1,43 +1,70 @@
 package excel
 
 import (
+	"github.com/xuri/excelize/v2"
 	"reflect"
 )
 
-// Reader interface
-type Reader interface {
+// IReader interface
+// All readers must implement this interface
+type IReader interface {
 	Unmarshall() error
-	SetColumnsOptions(options map[string]*FieldTags)
+	SetColumnsTags(tags map[string]*Tags)
+}
+
+// Reader is the Excel reader
+type Reader struct {
+	file  *excelize.File
+	Sheet Sheet
+	Axis  Axis
+}
+
+// validate validates the reader
+// It returns an error if :
+// - the sheet is not valid
+// - the axis is not valid
+func (r *Reader) validate() error {
+	if r.file == nil {
+		return ErrFileIsNil
+	}
+	if !r.isSheetValid() {
+		return ErrSheetNotValid
+	}
+	if !r.isAxisValid() {
+		return ErrAxisNotValid
+	}
+	return nil
 }
 
 // newReader create the appropriate reader
-func newReader(info *ReaderInfo, container any) (Reader, error) {
-	// The type of the reader depends on the ContainerInfo
-	containerValue := reflect.ValueOf(container)
-	containerType := reflect.Indirect(containerValue).Type()
+func (r *Reader) newReader(container any) (IReader, error) {
+	// The type of the reader depends on the Container
+	v := reflect.ValueOf(container)
+	t := reflect.Indirect(v).Type()
 
-	// Validate ContainerInfo
-	if containerValue.Kind() != reflect.Pointer && containerType.Kind() != reflect.Slice {
+	// validate the container
+	// It must be a pointer to a slice
+	if v.Kind() != reflect.Pointer && t.Kind() != reflect.Slice {
 		return nil, ErrContainerInvalid
 	}
 
-	// Get element
-	containerElement := containerType.Elem()
-	if containerElement.Kind() == reflect.Pointer {
-		containerElement = containerElement.Elem()
+	// Get the element type of the container
+	e := t.Elem()
+	if e.Kind() == reflect.Pointer {
+		e = e.Elem()
 	}
 
 	// create the reader according to the
 	// type of element
-	switch containerElement.Kind() {
+	switch e.Kind() {
 	case reflect.Struct:
-		reader, err := newStructReader(info, containerValue)
+		reader, err := newStructReader(r, v)
 		return reader, err
 	case reflect.Map:
-		reader, err := newMapReader(info, containerValue)
+		reader, err := newMapReader(r, v)
 		return reader, err
 	case reflect.Slice, reflect.Array:
-		reader, err := newSliceReader(info, containerValue)
+		reader, err := newSliceReader(r, v)
 		return reader, err
 	}
 	return nil, ErrNoReaderFound

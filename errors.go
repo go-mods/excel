@@ -11,7 +11,7 @@ var (
 	ErrNoReaderFound = errors.New("excel: unable to create an appropriate reader")
 	ErrNoWriterFound = errors.New("excel: unable to create an appropriate writer")
 
-	ErrContainerInvalid = errors.New("excel: the ContainerInfo must be a slice or a pointer")
+	ErrContainerInvalid = errors.New("excel: the Container must be a slice or a pointer")
 	ErrColumnRequired   = errors.New("excel: required colum")
 
 	ErrNotImplemented = errors.New("excel: not implemented")

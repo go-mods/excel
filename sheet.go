@@ -9,43 +9,93 @@ type Sheet struct {
 	Index int
 }
 
-func (r *ReaderInfo) SetSheetName(n string) {
+// SetSheetName sets the sheet name to be used by the reader or writer
+func (e *Excel) SetSheetName(sheet string) {
+	if e.Reader != nil {
+		e.Reader.setSheetName(sheet)
+	}
+	if e.Writer != nil {
+		e.Writer.setSheetName(sheet)
+	}
+}
+
+// GetSheetName gets the sheet name used by the reader or writer
+func (e *Excel) GetSheetName() string {
+	if e.Reader != nil {
+		return e.Reader.getSheetName()
+	}
+	if e.Writer != nil {
+		return e.Writer.getSheetName()
+	}
+	return ""
+}
+
+// SetSheetIndex sets the sheet index to be used by the reader or writer
+func (e *Excel) SetSheetIndex(index int) {
+	if e.Reader != nil {
+		e.Reader.setSheetIndex(index)
+	}
+	if e.Writer != nil {
+		e.Writer.setSheetIndex(index)
+	}
+}
+
+// GetSheetIndex gets the sheet index used by the reader or writer
+func (e *Excel) GetSheetIndex() int {
+	if e.Reader != nil {
+		i, err := e.Reader.getSheetIndex()
+		if err != nil {
+			return 0
+		}
+		return i
+	}
+	if e.Writer != nil {
+		i, err := e.Writer.getSheetIndex()
+		if err != nil {
+			return 0
+		}
+		return i
+	}
+	return 0
+}
+
+func (r *Reader) setSheetName(n string) {
 	_ = setSheetName(r.file, &r.Sheet, n)
 }
 
-func (r *ReaderInfo) SetSheetIndex(i int) {
-	setSheetIndex(r.file, &r.Sheet, i)
-}
-
-func (r *ReaderInfo) GetSheetName() string {
+func (r *Reader) getSheetName() string {
 	return getSheetName(r.file, &r.Sheet)
 }
 
-func (r *ReaderInfo) GetSheetIndex() (int, error) {
+func (r *Reader) setSheetIndex(i int) {
+	setSheetIndex(r.file, &r.Sheet, i)
+}
+
+func (r *Reader) getSheetIndex() (int, error) {
 	return getSheetIndex(r.file, &r.Sheet)
 }
 
-func (r *ReaderInfo) isSheetValid() bool {
+func (r *Reader) isSheetValid() bool {
 	return isSheetValid(&r.Sheet)
 }
 
-func (w *WriterInfo) SetSheetName(n string) {
+func (w *Writer) setSheetName(n string) {
 	_ = setSheetName(w.file, &w.Sheet, n)
 }
 
-func (w *WriterInfo) SetSheetIndex(i int) {
-	setSheetIndex(w.file, &w.Sheet, i)
-}
-
-func (w *WriterInfo) GetSheetName() string {
+func (w *Writer) getSheetName() string {
 	return getSheetName(w.file, &w.Sheet)
 }
 
-func (w *WriterInfo) GetSheetIndex() (int, error) {
+func (w *Writer) setSheetIndex(i int) {
+	setSheetIndex(w.file, &w.Sheet, i)
+}
+
+func (w *Writer) getSheetIndex() (int, error) {
 	return getSheetIndex(w.file, &w.Sheet)
 }
 
-func (w *WriterInfo) isSheetValid() bool {
+func (w *Writer) isSheetValid() bool {
 	return isSheetValid(&w.Sheet)
 }
 

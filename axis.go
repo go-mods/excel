@@ -10,27 +10,47 @@ type Axis struct {
 	Row  int
 }
 
-func (r *ReaderInfo) SetAxis(axis string) {
+// SetAxis sets the axis to be used by the reader or writer
+func (e *Excel) SetAxis(axis string) {
+	if e.Reader != nil {
+		e.Reader.setAxis(axis)
+	}
+	if e.Writer != nil {
+		e.Writer.setAxis(axis)
+	}
+}
+
+// SetAxisCoordinates sets the axis coordinates to be used by the reader or writer
+func (e *Excel) SetAxisCoordinates(col int, row int) {
+	if e.Reader != nil {
+		e.Reader.setAxisCoordinates(col, row)
+	}
+	if e.Writer != nil {
+		e.Writer.setAxisCoordinates(col, row)
+	}
+}
+
+func (r *Reader) setAxis(axis string) {
 	setAxis(&r.Axis, axis)
 }
 
-func (r *ReaderInfo) SetAxisCoordinates(col int, row int) {
+func (r *Reader) setAxisCoordinates(col int, row int) {
 	setAxisCoordinates(&r.Axis, col, row)
 }
 
-func (r *ReaderInfo) isAxisValid() bool {
+func (r *Reader) isAxisValid() bool {
 	return isAxisValid(&r.Axis)
 }
 
-func (w *WriterInfo) SetAxis(axis string) {
+func (w *Writer) setAxis(axis string) {
 	setAxis(&w.Axis, axis)
 }
 
-func (w *WriterInfo) SetAxisCoordinates(col int, row int) {
+func (w *Writer) setAxisCoordinates(col int, row int) {
 	setAxisCoordinates(&w.Axis, col, row)
 }
 
-func (w *WriterInfo) isAxisValid() bool {
+func (w *Writer) isAxisValid() bool {
 	return isAxisValid(&w.Axis)
 }
 

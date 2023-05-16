@@ -5,62 +5,50 @@ import (
 )
 
 type Excel struct {
-	File       *excelize.File
-	ReaderInfo *ReaderInfo
-	WriterInfo *WriterInfo
+	File   *excelize.File
+	Reader *Reader
+	Writer *Writer
 
-	StructInfo *StructInfo
+	Struct *Struct
 }
 
-func (e *Excel) Marshal(container any, options ...map[string]*FieldTags) error {
-	// Validate excel input
-	err := e.Validate()
-	if err != nil {
-		return err
+// NewReader creates a new Excel reader
+func NewReader(file *excelize.File) (*Excel, error) {
+	if file == nil {
+		return nil, ErrFileIsNil
 	}
-
-	// Create the writer
-	writer, err := newWriter(e.WriterInfo, container)
-	if err != nil {
-		return err
+	r := &Reader{
+		file: file,
 	}
-
-	// Set column options
-	if len(options) > 0 {
-		writer.SetColumnsOptions(options[0])
+	e := &Excel{
+		File:   file,
+		Reader: r,
 	}
-
-	// Check if writer is a struct writer
-	if _, ok := writer.(*StructWriter); ok {
-		e.StructInfo = writer.(*StructWriter).StructInfo
-	}
-
-	// unmarshall
-	err = writer.Marshall(container)
-	return err
+	return e, nil
 }
 
-func (e *Excel) Unmarshal(container any, options ...map[string]*FieldTags) error {
-	// Validate excel input
-	err := e.Validate()
+// Unmarshal reads the Excel file and unmarshals it into the container
+func (e *Excel) Unmarshal(container any, tags ...map[string]*Tags) error {
+	// validate excel input
+	err := e.validate()
 	if err != nil {
 		return err
 	}
 
 	// Create the reader
-	reader, err := newReader(e.ReaderInfo, container)
+	reader, err := e.Reader.newReader(container)
 	if err != nil {
 		return err
 	}
 
-	// Set column options
-	if len(options) > 0 {
-		reader.SetColumnsOptions(options[0])
+	// Set column tags
+	if len(tags) > 0 {
+		reader.SetColumnsTags(tags[0])
 	}
 
 	// Check if reader is a struct reader
 	if _, ok := reader.(*StructReader); ok {
-		e.StructInfo = reader.(*StructReader).StructInfo
+		e.Struct = reader.(*StructReader).Struct
 	}
 
 	// unmarshall
@@ -68,78 +56,63 @@ func (e *Excel) Unmarshal(container any, options ...map[string]*FieldTags) error
 	return err
 }
 
-func (e *Excel) SetSheetName(sheet string) {
-	if e.ReaderInfo != nil {
-		e.ReaderInfo.SetSheetName(sheet)
+// NewWriter create the configuration used by the writer
+func NewWriter(file *excelize.File) (*Excel, error) {
+	if file == nil {
+		return nil, ErrFileIsNil
 	}
-	if e.WriterInfo != nil {
-		e.WriterInfo.SetSheetName(sheet)
+	w := &Writer{
+		file: file,
 	}
+	e := &Excel{
+		File:   file,
+		Writer: w,
+	}
+	return e, nil
 }
 
-func (e *Excel) GetSheetName() string {
-	if e.ReaderInfo != nil {
-		return e.ReaderInfo.GetSheetName()
+// Marshal writes the container into the Excel file
+func (e *Excel) Marshal(container any, tags ...map[string]*Tags) error {
+	// validate excel input
+	err := e.validate()
+	if err != nil {
+		return err
 	}
-	if e.WriterInfo != nil {
-		return e.WriterInfo.GetSheetName()
+
+	// Create the writer
+	writer, err := e.Writer.newWriter(container)
+	if err != nil {
+		return err
 	}
-	return ""
+
+	// Set column tags
+	if len(tags) > 0 {
+		writer.SetColumnsTags(tags[0])
+	}
+
+	// Check if writer is a struct writer
+	if _, ok := writer.(*StructWriter); ok {
+		e.Struct = writer.(*StructWriter).Struct
+	}
+
+	// unmarshall
+	err = writer.Marshall(container)
+	return err
 }
 
-func (e *Excel) SetSheetIndex(index int) {
-	if e.ReaderInfo != nil {
-		e.ReaderInfo.SetSheetIndex(index)
-	}
-	if e.WriterInfo != nil {
-		e.WriterInfo.SetSheetIndex(index)
-	}
-}
-
-func (e *Excel) GetSheetIndex() int {
-	if e.ReaderInfo != nil {
-		i, err := e.ReaderInfo.GetSheetIndex()
-		if err != nil {
-			return 0
-		}
-		return i
-	}
-	if e.WriterInfo != nil {
-		i, err := e.WriterInfo.GetSheetIndex()
-		if err != nil {
-			return 0
-		}
-		return i
-	}
-	return 0
-}
-
-func (e *Excel) SetAxis(axis string) {
-	if e.ReaderInfo != nil {
-		e.ReaderInfo.SetAxis(axis)
-	}
-	if e.WriterInfo != nil {
-		e.WriterInfo.SetAxis(axis)
-	}
-}
-
-func (e *Excel) SetAxisCoordinates(col int, row int) {
-	if e.ReaderInfo != nil {
-		e.ReaderInfo.SetAxisCoordinates(col, row)
-	}
-	if e.WriterInfo != nil {
-		e.WriterInfo.SetAxisCoordinates(col, row)
-	}
-}
-
-func (e *Excel) Validate() error {
+// validate validates the Excel configuration
+// It returns an error if :
+// - the file is nil
+// - the reader is not valid
+// - the writer is not valid
+func (e *Excel) validate() error {
 	if e.File == nil {
 		return ErrFileIsNil
 	}
-	if e.ReaderInfo != nil {
-		return e.ReaderInfo.Validate()
-	} else if e.WriterInfo != nil {
-		return e.WriterInfo.Validate()
+	if e.Reader != nil {
+		return e.Reader.validate()
+	} else if e.Writer != nil {
+		return e.Writer.validate()
 	}
 	return ErrConfigNotValid
 }

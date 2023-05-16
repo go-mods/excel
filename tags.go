@@ -14,136 +14,84 @@ const (
 	ignoreTag   = "-"
 )
 
-// FieldTags which can be used when reading or writing
-type FieldTags struct {
-	ColumnName   string
-	columnIndex  int
-	DefaultValue interface{}
-	Format       string
-	Encoding     string
-	Split        string
-	IsRequired   bool
-	Ignore       bool
+// Tags is used to store the mainTags parameters of a field.
+//
+// The mainTags parameters are defined in the struct definition and are prefixed by "excel"
+// and are used to configure the import and export of an Excel file.
+//
+// Example:
+//
+//	type MyStruct struct {
+//		Column1 string `excel:"column=MyColumn1"`
+//		Column2 string `excel:"column=MyColumn2;required"`
+//		Column3 string `excel:"column=MyColumn3;default=Hello World"`
+//	}
+//
+// In this example:
+// the Column1 field will be mapped to the "MyColumn1" column of the Excel file.
+// The Column2 field will be mapped to the "MyColumn2" column of the Excel file and it will be required.
+// The Column3 field will be mapped to the "MyColumn3" column of the Excel file and it will have a default value of "Hello World".
+type Tags struct {
+	Column   string
+	Default  interface{}
+	Format   string
+	Encoding string
+	Split    string
+	Required bool
+	Ignore   bool
+
+	// internal
+	index int // The index of the column in the Excel file.
 }
 
-// The FieldsTags interface can be used as a replacement of the tags parameters.
-type FieldsTags interface {
-	GetFieldsTags() map[string]*FieldTags
+// The ITags interface can be used as a replacement of the mainTags parameters.
+// The GetTags method must return a map of the mainTags.
+// The key of the map is the name of the field and the value is a Tags structure.
+//
+// Example:
+//
+//	type MyStruct struct {
+//		Column1 string `excel:"column=MyColumn1"`
+//		Column2 string `excel:"column=MyColumn2;required"`
+//		Column3 string `excel:"column=MyColumn3;default=Hello World"`
+//	}
+//
+//	func (s *MyStruct) GetTags() map[string]excel.MainTags {
+//		return map[string]excel.MainTags{
+//			"Column1": excel.MainTags{Column: "MyColumn1"},
+//			"Column2": excel.MainTags{Column: "MyColumn2", Required: true},
+//			"Column3": excel.MainTags{Column: "MyColumn3", Default: "Hello World"},
+//		}
+//	}
+//
+// In this example:
+// the Column1 field will be mapped to the "MyColumn1" column of the Excel file.
+// The Column2 field will be mapped to the "MyColumn2" column of the Excel file and it will be required.
+// The Column3 field will be mapped to the "MyColumn3" column of the Excel file and it will have a default value of "Hello World".
+type ITags interface {
+	GetTags() map[string]*Tags
 }
 
-// The FieldsTagsIn interface can be used as a replacement of the tags parameters when importing an Excel file.
-type FieldsTagsIn interface {
-	GetFieldsTagsIn() map[string]*FieldTags
+// The IReadTags interface can be used as a replacement of the mainTags parameters when importing an Excel file.
+//
+// GetTagsIn is used when importing an Excel file and will be used if ITags is not implemented.
+type IReadTags interface {
+	GetReadTags() map[string]*Tags
 }
 
-// The FieldsTagsOut interface can be used as a replacement of the tags parameters when exporting an Excel file.
-type FieldsTagsOut interface {
-	GetFieldsTagsOut() map[string]*FieldTags
+// The IWriteTags interface can be used as a replacement of the mainTags parameters when exporting an Excel file.
+//
+// GetTagsOut is used when exporting an Excel file and will be used if ITags is not implemented.
+type IWriteTags interface {
+	GetWriteTags() map[string]*Tags
 }
 
-func newTags() *FieldTags {
-	tags := &FieldTags{
-		columnIndex: -1,
-		IsRequired:  false,
-		Ignore:      false,
+// newTag returns a Tags structure with default values.
+func newTag() *Tags {
+	tag := &Tags{
+		index:    -1,
+		Required: false,
+		Ignore:   false,
 	}
-	return tags
-}
-
-func (f *FieldInfo) ColumnNameIn() string {
-	if len(f.TagsIn.ColumnName) > 0 {
-		return f.TagsIn.ColumnName
-	}
-	return f.Tags.ColumnName
-}
-
-func (f *FieldInfo) ColumnNameOut() string {
-	if len(f.TagsOut.ColumnName) > 0 {
-		return f.TagsOut.ColumnName
-	}
-	return f.Tags.ColumnName
-}
-
-func (f *FieldInfo) DefaultValueIn() interface{} {
-	if f.TagsIn.DefaultValue != nil {
-		return f.TagsIn.DefaultValue
-	}
-	return f.Tags.DefaultValue
-}
-
-func (f *FieldInfo) DefaultValueOut() interface{} {
-	if f.TagsOut.DefaultValue != nil {
-		return f.TagsOut.DefaultValue
-	}
-	return f.Tags.DefaultValue
-}
-
-func (f *FieldInfo) FormatIn() string {
-	if len(f.TagsIn.Format) > 0 {
-		return f.TagsIn.Format
-	}
-	return f.Tags.Format
-}
-
-func (f *FieldInfo) FormatOut() string {
-	if len(f.TagsOut.Format) > 0 {
-		return f.TagsOut.Format
-	}
-	return f.Tags.Format
-}
-
-func (f *FieldInfo) EncodingIn() string {
-	if len(f.TagsIn.Encoding) > 0 {
-		return f.TagsIn.Encoding
-	}
-	return f.Tags.Encoding
-}
-
-func (f *FieldInfo) EncodingOut() string {
-	if len(f.TagsOut.Encoding) > 0 {
-		return f.TagsOut.Encoding
-	}
-	return f.Tags.Encoding
-}
-
-func (f *FieldInfo) SplitIn() string {
-	if len(f.TagsIn.Split) > 0 {
-		return f.TagsIn.Split
-	}
-	return f.Tags.Split
-}
-
-func (f *FieldInfo) SplitOut() string {
-	if len(f.TagsOut.Split) > 0 {
-		return f.TagsOut.Split
-	}
-	return f.Tags.Split
-}
-
-func (f *FieldInfo) IsRequiredIn() bool {
-	if f.TagsIn.IsRequired {
-		return f.TagsIn.IsRequired
-	}
-	return f.Tags.IsRequired
-}
-
-func (f *FieldInfo) IsRequiredOut() bool {
-	if f.TagsOut.IsRequired {
-		return f.TagsOut.IsRequired
-	}
-	return f.Tags.IsRequired
-}
-
-func (f *FieldInfo) IgnoreIn() bool {
-	if f.TagsIn.Ignore {
-		return f.TagsIn.Ignore
-	}
-	return f.Tags.Ignore
-}
-
-func (f *FieldInfo) IgnoreOut() bool {
-	if f.TagsOut.Ignore {
-		return f.TagsOut.Ignore
-	}
-	return f.Tags.Ignore
+	return tag
 }

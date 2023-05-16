@@ -4,38 +4,41 @@ import (
 	"reflect"
 )
 
+// StructReader is the Excel reader for a struct
+// It implements the IReader interface
 type StructReader struct {
-	ReaderInfo *ReaderInfo
-	container  *ContainerInfo
-	StructInfo *StructInfo
+	container *Container
+	Reader    *Reader
+	Struct    *Struct
 }
 
-func newStructReader(readerInfo *ReaderInfo, containerValue reflect.Value) (*StructReader, error) {
-	containerTypeElem := reflect.Indirect(containerValue).Type().Elem()
-	c := &ContainerInfo{
-		value:     containerValue,
-		typeElem:  containerTypeElem,
-		isPointer: containerTypeElem.Kind() == reflect.Pointer,
+// newStructReader create the appropriate reader
+func newStructReader(reader *Reader, value reflect.Value) (*StructReader, error) {
+	e := reflect.Indirect(value).Type().Elem()
+	c := &Container{
+		Value:   value,
+		Type:    e,
+		Pointer: e.Kind() == reflect.Pointer,
 	}
 	r := &StructReader{
-		ReaderInfo: readerInfo,
-		container:  c,
-		StructInfo: getStructInfo(c),
+		Reader:    reader,
+		container: c,
+		Struct:    getStruct(c),
 	}
 	return r, nil
 }
 
-// Unmarshall must be called when reading an Excel file
+// Unmarshall reads the excel file and fill the container
 func (r *StructReader) Unmarshall() error {
 
 	// get excel row
-	rows, err := r.ReaderInfo.file.Rows(r.ReaderInfo.Sheet.Name)
+	rows, err := r.Reader.file.Rows(r.Reader.Sheet.Name)
 	if err != nil {
 		return err
 	}
 
-	// prepare the slice ContainerInfo
-	slice := reflect.MakeSlice(reflect.SliceOf(r.container.typeElem), 0, 0)
+	// prepare the slice Container
+	slice := reflect.MakeSlice(reflect.SliceOf(r.container.Type), 0, 0)
 
 	// Loop throw all rows
 	rowIndex := 0
@@ -70,30 +73,30 @@ func (r *StructReader) Unmarshall() error {
 		rowIndex++
 	}
 
-	r.container.value.Elem().Set(slice)
+	r.container.Value.Elem().Set(slice)
 
 	return rows.Close()
 }
 
-func (w *StructReader) SetColumnsOptions(options map[string]*FieldTags) {
-	// Loop throw all fields in StructInfo
-	for _, field := range w.StructInfo.Fields {
-		w.StructInfo.freeze(options[field.Name], field.TagsIn)
+func (r *StructReader) SetColumnsTags(tags map[string]*Tags) {
+	// Loop throw all fields in Struct
+	for _, field := range r.Struct.Fields {
+		r.Struct.freeze(tags[field.Name], field.ReadTags)
 	}
 }
 
 func (r *StructReader) updateColumnIndex(row []string) error {
 	// Initialize all fields index
-	for _, f := range r.StructInfo.Fields {
+	for _, f := range r.Struct.Fields {
 		// Loop throw all columns
 		for colIndex, cell := range row {
-			if f.ColumnNameIn() == cell && !f.IgnoreIn() {
-				f.TagsIn.columnIndex = colIndex
+			if f.GetReadColumnName() == cell && !f.GetReadIgnore() {
+				f.ReadTags.index = colIndex
 				break
 			}
 		}
 		// Required column
-		if f.IsRequiredIn() && f.TagsIn.columnIndex == -1 {
+		if f.GetReadRequired() && f.ReadTags.index == -1 {
 			return ErrColumnRequired
 		}
 	}
@@ -102,23 +105,23 @@ func (r *StructReader) updateColumnIndex(row []string) error {
 
 func (r *StructReader) unmarshallRow(row []string) (value reflect.Value, err error) {
 
-	containerElement := r.container.create()
+	containerElement := r.container.newValue()
 
 	// Loop throw all fields
-	for _, fieldConfig := range r.StructInfo.Fields {
-		if fieldConfig.TagsIn.columnIndex >= 0 {
+	for _, fieldConfig := range r.Struct.Fields {
+		if fieldConfig.ReadTags.index >= 0 {
 
-			if len(row) >= fieldConfig.TagsIn.columnIndex+1 {
-				value, err = fieldConfig.toValue(row[fieldConfig.TagsIn.columnIndex])
+			if len(row) >= fieldConfig.ReadTags.index+1 {
+				value, err = fieldConfig.toValue(row[fieldConfig.ReadTags.index])
 				if err != nil {
 					return reflect.Value{}, nil
 				}
 			} else {
-				value = reflect.ValueOf(fieldConfig.DefaultValueIn())
+				value = reflect.ValueOf(fieldConfig.GetReadDefault())
 			}
 
 			if value.IsValid() {
-				r.container.setFieldValue(containerElement, fieldConfig.Index, value.Convert(fieldConfig.Type))
+				r.container.assign(containerElement, fieldConfig.Index, value.Convert(fieldConfig.Type))
 			}
 		}
 	}

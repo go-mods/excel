@@ -1,40 +1,70 @@
 package excel
 
-import "reflect"
+import (
+	"github.com/xuri/excelize/v2"
+	"reflect"
+)
 
-// Writer interface
-type Writer interface {
+// IWriter interface
+// All writers must implement this interface
+type IWriter interface {
 	Marshall(data any) error
-	SetColumnsOptions(options map[string]*FieldTags)
+	SetColumnsTags(tags map[string]*Tags)
+}
+
+// Writer is the Excel writer
+type Writer struct {
+	file  *excelize.File
+	Sheet Sheet
+	Axis  Axis
+}
+
+// validate validates the writer
+// It returns an error if :
+// - the sheet is not valid
+// - the axis is not valid
+func (w *Writer) validate() error {
+	if w.file == nil {
+		return ErrFileIsNil
+	}
+	if !w.isSheetValid() {
+		return ErrSheetNotValid
+	}
+	if !w.isAxisValid() {
+		return ErrAxisNotValid
+	}
+	return nil
 }
 
 // newWriter create the appropriate writer
-func newWriter(info *WriterInfo, container any) (Writer, error) {
-	// The type of the reader depends on the ContainerInfo
-	containerValue := reflect.ValueOf(container)
-	containerType := reflect.Indirect(containerValue).Type()
+func (w *Writer) newWriter(container any) (IWriter, error) {
+	// The type of the reader depends on the Container
+	v := reflect.ValueOf(container)
+	t := reflect.Indirect(v).Type()
 
-	// Validate ContainerInfo
-	if containerValue.Kind() != reflect.Pointer && containerType.Kind() != reflect.Slice {
+	// validate the container
+	// It must be a pointer to a slice
+	if v.Kind() != reflect.Pointer && t.Kind() != reflect.Slice {
 		return nil, ErrContainerInvalid
 	}
 
-	// Get element
-	containerElement := containerType.Elem()
-	if containerElement.Kind() == reflect.Ptr {
-		containerElement = containerElement.Elem()
+	// Get element type of the container
+	e := t.Elem()
+	if e.Kind() == reflect.Ptr {
+		e = e.Elem()
 	}
 
-	// create the reader
-	switch containerElement.Kind() {
+	// create the writer according to the
+	// type of element
+	switch e.Kind() {
 	case reflect.Struct:
-		writer, err := newStructWriter(info, containerValue)
+		writer, err := newStructWriter(w, v)
 		return writer, err
 	case reflect.Map:
-		writer, err := newMapWriter(info, containerValue)
+		writer, err := newMapWriter(w, v)
 		return writer, err
 	case reflect.Slice, reflect.Array:
-		writer, err := newSliceWriter(info, containerValue)
+		writer, err := newSliceWriter(w, v)
 		return writer, err
 	}
 	return nil, ErrNoWriterFound
