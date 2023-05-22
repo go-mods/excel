@@ -307,3 +307,46 @@ func TestMapWrite_any(t *testing.T) {
 	assert.Equal(t, sA3, "2", "they should be equal")
 	assert.Equal(t, sB3, "Jane Doe", "they should be equal")
 }
+
+func TestMapWrite_string_interface(t *testing.T) {
+
+	var mapAny []map[string]interface{}
+
+	m1 := make(map[string]interface{})
+	m1["ID"] = int64(1)
+	m1["Name"] = "John Doe"
+
+	m2 := make(map[string]interface{})
+	m2["ID"] = int64(2)
+	m2["Name"] = "Jane Doe"
+
+	mapAny = append(mapAny, m1)
+	mapAny = append(mapAny, m2)
+
+	file := excelize.NewFile()
+	defer func() { _ = file.Close() }()
+
+	xl, _ := NewWriter(file)
+	xl.SetSheetName(file.GetSheetName(file.GetActiveSheetIndex()))
+	xl.SetAxis("A1")
+
+	err := xl.Marshal(&mapAny)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	sA1, _ := file.GetCellValue(file.GetSheetName(file.GetActiveSheetIndex()), "A1")
+	sB1, _ := file.GetCellValue(file.GetSheetName(file.GetActiveSheetIndex()), "B1")
+	sA2, _ := file.GetCellValue(file.GetSheetName(file.GetActiveSheetIndex()), "A2")
+	sB2, _ := file.GetCellValue(file.GetSheetName(file.GetActiveSheetIndex()), "B2")
+	sA3, _ := file.GetCellValue(file.GetSheetName(file.GetActiveSheetIndex()), "A3")
+	sB3, _ := file.GetCellValue(file.GetSheetName(file.GetActiveSheetIndex()), "B3")
+
+	assert.Equal(t, sA1, "ID", "they should be equal")
+	assert.Equal(t, sB1, "Name", "they should be equal")
+	assert.Equal(t, sA2, "1", "they should be equal")
+	assert.Equal(t, sB2, "John Doe", "they should be equal")
+	assert.Equal(t, sA3, "2", "they should be equal")
+	assert.Equal(t, sB3, "Jane Doe", "they should be equal")
+}
