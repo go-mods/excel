@@ -9,23 +9,25 @@ import (
 // StructWriter is the Excel writer for a struct
 // It implements the IWriter interface
 type StructWriter struct {
-	Writer *Writer
-	Struct *Struct
+	container *Container
+	Writer    *Writer
+	Struct    *Struct
 }
 
 // newStructWriter create the appropriate writer
-func newStructWriter(writerInfo *Writer, containerValue reflect.Value) (*StructWriter, error) {
-	containerTypeElem := reflect.Indirect(containerValue).Type().Elem()
+func newStructWriter(writer *Writer, value reflect.Value) (*StructWriter, error) {
+	e := reflect.Indirect(value).Type().Elem()
 	c := &Container{
-		Value:   containerValue,
-		Type:    containerTypeElem,
-		Pointer: containerTypeElem.Kind() == reflect.Pointer,
+		Value:   value,
+		Type:    e,
+		Pointer: e.Kind() == reflect.Pointer,
 	}
-	r := &StructWriter{
-		Writer: writerInfo,
-		Struct: getStruct(c),
+	w := &StructWriter{
+		container: c,
+		Writer:    writer,
+		Struct:    getStruct(c),
 	}
-	return r, nil
+	return w, nil
 }
 
 // Marshall writes the Excel file from the container

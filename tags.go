@@ -58,9 +58,9 @@ type Tags struct {
 //
 //	func (s *MyStruct) GetTags() map[string]excel.MainTags {
 //		return map[string]excel.MainTags{
-//			"Column1": excel.MainTags{Column: "MyColumn1"},
-//			"Column2": excel.MainTags{Column: "MyColumn2", Required: true},
-//			"Column3": excel.MainTags{Column: "MyColumn3", Default: "Hello World"},
+//			"Column1": excel.MainTags{column: "MyColumn1"},
+//			"Column2": excel.MainTags{column: "MyColumn2", Required: true},
+//			"Column3": excel.MainTags{column: "MyColumn3", Default: "Hello World"},
 //		}
 //	}
 //

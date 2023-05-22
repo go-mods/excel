@@ -42,9 +42,8 @@ func (r *Reader) newReader(container any) (IReader, error) {
 	v := reflect.ValueOf(container)
 	t := reflect.Indirect(v).Type()
 
-	// validate the container
-	// It must be a pointer to a slice
-	if v.Kind() != reflect.Pointer && t.Kind() != reflect.Slice {
+	// The container must be a pointer to a slice
+	if v.Kind() != reflect.Pointer || t.Kind() != reflect.Slice {
 		return nil, ErrContainerInvalid
 	}
 
@@ -54,18 +53,19 @@ func (r *Reader) newReader(container any) (IReader, error) {
 		e = e.Elem()
 	}
 
-	// create the reader according to the
-	// type of element
+	// Create the reader according to the type of the container
+	// and the type of the elements
 	switch e.Kind() {
 	case reflect.Struct:
 		reader, err := newStructReader(r, v)
 		return reader, err
+	case reflect.Slice:
+		reader, err := newSliceReader(r, v)
+		return reader, err
 	case reflect.Map:
 		reader, err := newMapReader(r, v)
 		return reader, err
-	case reflect.Slice, reflect.Array:
-		reader, err := newSliceReader(r, v)
-		return reader, err
+	default:
+		return nil, ErrNoReaderFound
 	}
-	return nil, ErrNoReaderFound
 }

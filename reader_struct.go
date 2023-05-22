@@ -21,8 +21,8 @@ func newStructReader(reader *Reader, value reflect.Value) (*StructReader, error)
 		Pointer: e.Kind() == reflect.Pointer,
 	}
 	r := &StructReader{
-		Reader:    reader,
 		container: c,
+		Reader:    reader,
 		Struct:    getStruct(c),
 	}
 	return r, nil
@@ -31,7 +31,7 @@ func newStructReader(reader *Reader, value reflect.Value) (*StructReader, error)
 // Unmarshall reads the excel file and fill the container
 func (r *StructReader) Unmarshall() error {
 
-	// get excel row
+	// get excel rows
 	rows, err := r.Reader.file.Rows(r.Reader.Sheet.Name)
 	if err != nil {
 		return err
@@ -105,7 +105,7 @@ func (r *StructReader) updateColumnIndex(row []string) error {
 
 func (r *StructReader) unmarshallRow(row []string) (value reflect.Value, err error) {
 
-	containerElement := r.container.newValue()
+	containerValue := r.container.newValue()
 
 	// Loop throw all fields
 	for _, fieldConfig := range r.Struct.Fields {
@@ -114,17 +114,18 @@ func (r *StructReader) unmarshallRow(row []string) (value reflect.Value, err err
 			if len(row) >= fieldConfig.ReadTags.index+1 {
 				value, err = fieldConfig.toValue(row[fieldConfig.ReadTags.index])
 				if err != nil {
-					return reflect.Value{}, nil
+					value = reflect.Value{}
 				}
 			} else {
 				value = reflect.ValueOf(fieldConfig.GetReadDefault())
 			}
 
+			// Assign the value to the containerValue
 			if value.IsValid() {
-				r.container.assign(containerElement, fieldConfig.Index, value.Convert(fieldConfig.Type))
+				r.container.assign(containerValue, fieldConfig.Index, value.Convert(fieldConfig.Type))
 			}
 		}
 	}
 
-	return containerElement, nil
+	return containerValue, nil
 }

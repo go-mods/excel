@@ -42,30 +42,30 @@ func (w *Writer) newWriter(container any) (IWriter, error) {
 	v := reflect.ValueOf(container)
 	t := reflect.Indirect(v).Type()
 
-	// validate the container
-	// It must be a pointer to a slice
-	if v.Kind() != reflect.Pointer && t.Kind() != reflect.Slice {
+	// The container must be a pointer to a slice
+	if v.Kind() != reflect.Pointer || t.Kind() != reflect.Slice {
 		return nil, ErrContainerInvalid
 	}
 
 	// Get element type of the container
 	e := t.Elem()
-	if e.Kind() == reflect.Ptr {
+	if e.Kind() == reflect.Pointer {
 		e = e.Elem()
 	}
 
-	// create the writer according to the
-	// type of element
+	// Create the reader according to the type of the container
+	// and the type of the elements
 	switch e.Kind() {
 	case reflect.Struct:
 		writer, err := newStructWriter(w, v)
 		return writer, err
+	case reflect.Slice:
+		writer, err := newSliceWriter(w, v)
+		return writer, err
 	case reflect.Map:
 		writer, err := newMapWriter(w, v)
 		return writer, err
-	case reflect.Slice, reflect.Array:
-		writer, err := newSliceWriter(w, v)
-		return writer, err
+	default:
+		return nil, ErrNoReaderFound
 	}
-	return nil, ErrNoWriterFound
 }

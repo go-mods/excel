@@ -1,8 +1,8 @@
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
-github.com/go-mods/convert v0.2.0 h1:jGndToOJkNFa/83yT0B2UnhilpwFSh3FAYFwweFrGTk=
-github.com/go-mods/convert v0.2.0/go.mod h1:eo72jPQm5UJVbrINw8EUpvsCDZUXq3ZG2vAjUOo40ys=
+github.com/go-mods/convert v0.3.0 h1:kKgLu7iHbvVb/mOVDAvPpPiMeOF+2joT6uj5s3kAsDI=
+github.com/go-mods/convert v0.3.0/go.mod h1:eo72jPQm5UJVbrINw8EUpvsCDZUXq3ZG2vAjUOo40ys=
 github.com/go-mods/tags v1.0.0 h1:zsmPynltnIcUORh57p3pRwf/zT5IukaXGGT9c5G2ATo=
 github.com/go-mods/tags v1.0.0/go.mod h1:z6hA6jJidWVxU+YElmCvv5/r14uumU8Ub96TEHmg2V4=
 github.com/golang-module/carbon/v2 v2.2.3 h1:WvGIc5+qzq9drNzH+Gnjh1TZ0JgDY/IA+m2Dvk7Qm4Q=
@@ -73,6 +73,7 @@ golang.org/x/tools v0.0.0-20191119224855-298f0cb1881e/go.mod h1:b+2E5dAYhXwXZwtn
 golang.org/x/tools v0.1.12/go.mod h1:hNGJHUnrk76NpqgfD5Aqm5Crs+Hm0VOH/i9J2+nxYbc=
 golang.org/x/tools v0.6.0/go.mod h1:Xwgl3UAJ/d3gWutnCtw505GrjyAbvKui8lOU390QaIU=
 golang.org/x/xerrors v0.0.0-20190717185122-a985d3407aa7/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
+gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405 h1:yhCVgyC4o1eVCa2tZl7eS0r+SDo693bJlVdllGtEeKM=
 gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
 gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c/go.mod h1:K4uyk7z7BCEPqu6E+C64Yfv1cQ7kz7rIZviUmN+EgEM=
 gopkg.in/yaml.v3 v3.0.1 h1:fxVm/GzAzEWqLHuvctI91KS9hhNmmWOoWu0XTYJS7CA=
