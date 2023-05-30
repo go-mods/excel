@@ -36,15 +36,18 @@ func newMapReader(reader *Reader, value reflect.Value) (*mapReader, error) {
 	return r, nil
 }
 
-func (r *mapReader) Unmarshall() error {
+func (r *mapReader) Unmarshall() (*ReaderResult, error) {
 	// get excel rows
 	rows, err := r.Reader.file.Rows(r.Reader.Sheet.Name)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// prepare the slice Container
 	slice := reflect.MakeSlice(reflect.SliceOf(r.container.Type), 0, 0)
+
+	// prepare the result
+	result := &ReaderResult{}
 
 	// Loop throw all rows
 	rowIndex := 0
@@ -61,7 +64,7 @@ func (r *mapReader) Unmarshall() error {
 		if rowIndex == 0 {
 			err := r.getColumns(row)
 			if err != nil {
-				return err
+				return nil, err
 			}
 		}
 
@@ -69,7 +72,7 @@ func (r *mapReader) Unmarshall() error {
 		if rowIndex > 0 {
 			value, err := r.unmarshallRow(row)
 			if err != nil {
-				return err
+				return nil, err
 			}
 
 			if value.IsValid() {
@@ -79,9 +82,14 @@ func (r *mapReader) Unmarshall() error {
 		rowIndex++
 	}
 
+	// Set the result
+	result.Rows = rowIndex
+	result.Columns = len(r.Columns)
+
+	// Set the slice to the container
 	r.container.Value.Elem().Set(slice)
 
-	return rows.Close()
+	return result, rows.Close()
 }
 
 func (r *mapReader) SetColumnsTags(_ map[string]*Tags) {

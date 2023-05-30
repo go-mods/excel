@@ -144,6 +144,9 @@ func TestSliceWriter_string(t *testing.T) {
 	assert.Equal(t, "Name", sB1, "they should be equal")
 	assert.Equal(t, "1", sA2, "they should be equal")
 	assert.Equal(t, "John Doe", sB2, "they should be equal")
+
+	assert.Equal(t, xl.Writer.Result.Rows, 2, "they should be equal")
+	assert.Equal(t, xl.Writer.Result.Columns, 2, "they should be equal")
 }
 
 func TestSliceWriter_int(t *testing.T) {
@@ -174,6 +177,9 @@ func TestSliceWriter_int(t *testing.T) {
 	assert.Equal(t, "2", sB1, "they should be equal")
 	assert.Equal(t, "3", sA2, "they should be equal")
 	assert.Equal(t, "4", sB2, "they should be equal")
+
+	assert.Equal(t, xl.Writer.Result.Rows, 2, "they should be equal")
+	assert.Equal(t, xl.Writer.Result.Columns, 2, "they should be equal")
 }
 
 func TestSliceWriter_any(t *testing.T) {
@@ -181,6 +187,7 @@ func TestSliceWriter_any(t *testing.T) {
 	var anySlice MyAnySlice
 	anySlice = append(anySlice, []interface{}{"ID", "Name"})
 	anySlice = append(anySlice, []interface{}{1, "John Doe"})
+	anySlice = append(anySlice, []interface{}{2, "Jane Doe"})
 
 	file := excelize.NewFile()
 	defer func() { _ = file.Close() }()
@@ -204,6 +211,9 @@ func TestSliceWriter_any(t *testing.T) {
 	assert.Equal(t, "Name", sB1, "they should be equal")
 	assert.Equal(t, "1", sA2, "they should be equal")
 	assert.Equal(t, "John Doe", sB2, "they should be equal")
+
+	assert.Equal(t, xl.Writer.Result.Rows, 3, "they should be equal")
+	assert.Equal(t, xl.Writer.Result.Columns, 2, "they should be equal")
 }
 
 func TestMapWrite_string(t *testing.T) {

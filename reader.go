@@ -8,15 +8,22 @@ import (
 // IReader interface
 // All readers must implement this interface
 type IReader interface {
-	Unmarshall() error
+	Unmarshall() (*ReaderResult, error)
 	SetColumnsTags(tags map[string]*Tags)
 }
 
 // Reader is the Excel reader
 type Reader struct {
-	file  *excelize.File
-	Sheet Sheet
-	Axis  Axis
+	file   *excelize.File
+	Sheet  Sheet
+	Axis   Axis
+	Result *ReaderResult
+}
+
+// ReaderResult is a struct that contains the result of the reader
+type ReaderResult struct {
+	Rows    int
+	Columns int
 }
 
 // validate validates the reader

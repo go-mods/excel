@@ -31,12 +31,12 @@ func newStructWriter(writer *Writer, value reflect.Value) (*StructWriter, error)
 }
 
 // Marshall writes the Excel file from the container
-func (w *StructWriter) Marshall(data any) error {
+func (w *StructWriter) Marshall(data any) (*WriterResult, error) {
 
 	// get excel rows to find titles if exists
 	rows, err := w.Writer.file.Rows(w.Writer.Sheet.Name)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// Get title row
@@ -56,12 +56,17 @@ func (w *StructWriter) Marshall(data any) error {
 	w.updateColumnIndex(titleRow)
 
 	// Write
-	err = w.writeRows(data)
+	count, err := w.writeRows(data)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	// prepare the result
+	result := &WriterResult{}
+	result.Rows = count
+	result.Columns = w.Struct.Fields.Count() - w.Struct.Fields.CountWriteIgnored()
+
+	return result, nil
 }
 
 func (w *StructWriter) SetColumnsTags(tags map[string]*Tags) {
@@ -106,12 +111,12 @@ func (w *StructWriter) updateColumnIndex(row []string) {
 	}
 }
 
-func (w *StructWriter) writeRows(slice any) (err error) {
+func (w *StructWriter) writeRows(slice any) (row int, err error) {
 
 	// Make sure 'slice' is a Pointer to Slice
 	s := reflect.ValueOf(slice)
 	if s.Kind() != reflect.Pointer || s.Elem().Kind() != reflect.Slice {
-		return ErrContainerInvalid
+		return 0, ErrContainerInvalid
 	}
 	s = s.Elem()
 
@@ -124,7 +129,7 @@ func (w *StructWriter) writeRows(slice any) (err error) {
 		if !f.GetWriteIgnore() {
 			cell, _ := excelize.CoordinatesToCellName(col+f.WriteTags.index, row)
 			if err := w.Writer.file.SetCellValue(w.Writer.Sheet.Name, cell, f.GetWriteColumnName()); err != nil {
-				return err
+				return 0, err
 			}
 		}
 	}
@@ -150,10 +155,10 @@ func (w *StructWriter) writeRows(slice any) (err error) {
 				cell, _ := excelize.CoordinatesToCellName(col+f.WriteTags.index, row)
 				cellValue, err := f.toCellValue(value.Interface())
 				if err != nil {
-					return err
+					return 0, err
 				}
 				if err = w.Writer.file.SetCellValue(w.Writer.Sheet.Name, cell, cellValue); err != nil {
-					return err
+					return row, err
 				}
 			}
 		}
@@ -161,5 +166,5 @@ func (w *StructWriter) writeRows(slice any) (err error) {
 		row++
 	}
 
-	return
+	return row, nil
 }

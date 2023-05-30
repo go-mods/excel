@@ -29,16 +29,19 @@ func newStructReader(reader *Reader, value reflect.Value) (*StructReader, error)
 }
 
 // Unmarshall reads the excel file and fill the container
-func (r *StructReader) Unmarshall() error {
+func (r *StructReader) Unmarshall() (*ReaderResult, error) {
 
 	// get excel rows
 	rows, err := r.Reader.file.Rows(r.Reader.Sheet.Name)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// prepare the slice Container
 	slice := reflect.MakeSlice(reflect.SliceOf(r.container.Type), 0, 0)
+
+	// prepare the result
+	result := &ReaderResult{}
 
 	// Loop throw all rows
 	rowIndex := 0
@@ -55,7 +58,7 @@ func (r *StructReader) Unmarshall() error {
 		if rowIndex == 0 {
 			err := r.updateColumnIndex(row)
 			if err != nil {
-				return err
+				return nil, err
 			}
 		}
 
@@ -63,19 +66,30 @@ func (r *StructReader) Unmarshall() error {
 		if rowIndex > 0 {
 			value, err := r.unmarshallRow(row)
 			if err != nil {
-				return err
+				return nil, err
 			}
 
 			if value.IsValid() {
 				slice = reflect.Append(slice, value)
 			}
 		}
+
+		// Set the result
+		if result.Rows == 0 {
+			result.Columns = len(row)
+		}
+
+		// Next row
 		rowIndex++
 	}
 
+	// Set the result
+	result.Rows = rowIndex
+
+	// Set the slice to the container
 	r.container.Value.Elem().Set(slice)
 
-	return rows.Close()
+	return result, rows.Close()
 }
 
 func (r *StructReader) SetColumnsTags(tags map[string]*Tags) {

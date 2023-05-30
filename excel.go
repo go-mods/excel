@@ -52,7 +52,7 @@ func (e *Excel) Unmarshal(container any, tags ...map[string]*Tags) error {
 	}
 
 	// unmarshall
-	err = reader.Unmarshall()
+	e.Reader.Result, err = reader.Unmarshall()
 	return err
 }
 
@@ -96,7 +96,7 @@ func (e *Excel) Marshal(container any, tags ...map[string]*Tags) error {
 	}
 
 	// unmarshall
-	err = writer.Marshall(container)
+	e.Writer.Result, err = writer.Marshall(container)
 	return err
 }
 

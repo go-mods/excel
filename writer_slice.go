@@ -24,32 +24,36 @@ func newSliceWriter(writer *Writer, value reflect.Value) (*SliceWriter, error) {
 	return w, nil
 }
 
-func (w *SliceWriter) Marshall(data any) error {
+func (w *SliceWriter) Marshall(data any) (*WriterResult, error) {
 
 	// Write
-	err := w.writeRows(data)
+	result, err := w.writeRows(data)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return result, nil
 }
 
 func (w *SliceWriter) SetColumnsTags(_ map[string]*Tags) {
 	panic(ErrNotImplemented.Error())
 }
 
-func (w *SliceWriter) writeRows(data any) (err error) {
+func (w *SliceWriter) writeRows(data any) (*WriterResult, error) {
 
 	// Make sure 'data' is a Pointer to Slice
 	s := reflect.ValueOf(data)
 	if s.Kind() != reflect.Pointer || s.Elem().Kind() != reflect.Slice {
-		return ErrContainerInvalid
+		return nil, ErrContainerInvalid
 	}
 	s = s.Elem()
 
 	// Get default coordinates
 	col, row, _ := excelize.CellNameToCoordinates(w.Writer.Axis.Axis)
+
+	// prepare the result
+	result := &WriterResult{}
+	result.Rows = s.Len()
 
 	// Write rows
 	for i := 0; i < s.Len(); i++ {
@@ -67,11 +71,16 @@ func (w *SliceWriter) writeRows(data any) (err error) {
 
 			// cell
 			cell, _ := excelize.CoordinatesToCellName(col+j, row+i)
-			if err = w.Writer.file.SetCellValue(w.Writer.Sheet.Name, cell, value); err != nil {
-				return err
+			if err := w.Writer.file.SetCellValue(w.Writer.Sheet.Name, cell, value); err != nil {
+				return nil, err
 			}
+		}
+
+		// update the result
+		if result.Columns == 0 {
+			result.Columns = values.Len()
 		}
 	}
 
-	return
+	return result, nil
 }

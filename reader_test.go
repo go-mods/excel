@@ -603,6 +603,9 @@ func TestSliceRead_any(t *testing.T) {
 	assert.Equal(t, anySlice[0][1], "Name", "they should be equal")
 	assert.Equal(t, anySlice[1][0], int64(1), "they should be equal")
 	assert.Equal(t, anySlice[1][1], "John Doe", "they should be equal")
+
+	assert.Equal(t, xl.Reader.Result.Rows, 2, "they should be equal")
+	assert.Equal(t, xl.Reader.Result.Columns, 2, "they should be equal")
 }
 
 func TestMapRead_string(t *testing.T) {
@@ -631,6 +634,9 @@ func TestMapRead_string(t *testing.T) {
 	assert.Equal(t, mapString[0]["Name"], "John Doe", "they should be equal")
 	assert.Equal(t, mapString[1]["ID"], "2", "they should be equal")
 	assert.Equal(t, mapString[1]["Name"], "Jane Doe", "they should be equal")
+
+	assert.Equal(t, xl.Reader.Result.Rows, 3, "they should be equal")
+	assert.Equal(t, xl.Reader.Result.Columns, 2, "they should be equal")
 }
 
 func TestMapRead_int(t *testing.T) {
@@ -659,6 +665,9 @@ func TestMapRead_int(t *testing.T) {
 	assert.Equal(t, mapInt[0]["ID2"], 2, "they should be equal")
 	assert.Equal(t, mapInt[1]["ID1"], 3, "they should be equal")
 	assert.Equal(t, mapInt[1]["ID2"], 4, "they should be equal")
+
+	assert.Equal(t, xl.Reader.Result.Rows, 3, "they should be equal")
+	assert.Equal(t, xl.Reader.Result.Columns, 2, "they should be equal")
 }
 
 func TestMapRead_any(t *testing.T) {
@@ -687,4 +696,7 @@ func TestMapRead_any(t *testing.T) {
 	assert.Equal(t, mapAny[0]["Name"], "John Doe", "they should be equal")
 	assert.Equal(t, mapAny[1]["ID"], int64(2), "they should be equal")
 	assert.Equal(t, mapAny[1]["Name"], "Jane Doe", "they should be equal")
+
+	assert.Equal(t, xl.Reader.Result.Rows, 3, "they should be equal")
+	assert.Equal(t, xl.Reader.Result.Columns, 2, "they should be equal")
 }

@@ -5,7 +5,7 @@ go 1.20
 require (
 	github.com/go-mods/convert v0.3.0
 	github.com/go-mods/tags v1.0.0
-	github.com/stretchr/testify v1.8.1
+	github.com/stretchr/testify v1.8.4
 	github.com/xuri/excelize/v2 v2.7.1
 )
 

@@ -24,27 +24,27 @@ func newMapWriter(writer *Writer, value reflect.Value) (*MapWriter, error) {
 	return w, nil
 }
 
-func (w *MapWriter) Marshall(data any) error {
+func (w *MapWriter) Marshall(data any) (*WriterResult, error) {
 
 	// Write
-	err := w.writeRows(data)
+	result, err := w.writeRows(data)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return result, nil
 }
 
 func (w *MapWriter) SetColumnsTags(_ map[string]*Tags) {
 	panic(ErrNotImplemented.Error())
 }
 
-func (w *MapWriter) writeRows(slice any) (err error) {
+func (w *MapWriter) writeRows(slice any) (*WriterResult, error) {
 
 	// Make sure 'slice' is a Pointer to Slice
 	s := reflect.ValueOf(slice)
 	if s.Kind() != reflect.Pointer || s.Elem().Kind() != reflect.Slice {
-		return ErrContainerInvalid
+		return nil, ErrContainerInvalid
 	}
 	s = s.Elem()
 
@@ -75,8 +75,8 @@ func (w *MapWriter) writeRows(slice any) (err error) {
 			for j, key := range keys {
 				// write key in cell
 				cell, _ := excelize.CoordinatesToCellName(col+j, row)
-				if err = w.Writer.file.SetCellValue(w.Writer.Sheet.Name, cell, key); err != nil {
-					return err
+				if err := w.Writer.file.SetCellValue(w.Writer.Sheet.Name, cell, key); err != nil {
+					return nil, err
 				}
 			}
 		}
@@ -87,11 +87,16 @@ func (w *MapWriter) writeRows(slice any) (err error) {
 			value := values.MapIndex(key)
 			// cell
 			cell, _ := excelize.CoordinatesToCellName(col+j, row+i+1)
-			if err = w.Writer.file.SetCellValue(w.Writer.Sheet.Name, cell, value); err != nil {
-				return err
+			if err := w.Writer.file.SetCellValue(w.Writer.Sheet.Name, cell, value); err != nil {
+				return nil, err
 			}
 		}
 	}
 
-	return
+	// prepare the result
+	result := &WriterResult{}
+	result.Rows = s.Len()
+	result.Columns = len(keys)
+
+	return result, nil
 }

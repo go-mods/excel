@@ -24,16 +24,19 @@ func newSliceReader(reader *Reader, value reflect.Value) (*SliceReader, error) {
 	return r, nil
 }
 
-func (r *SliceReader) Unmarshall() error {
+func (r *SliceReader) Unmarshall() (*ReaderResult, error) {
 
 	// get excel rows
 	rows, err := r.Reader.file.Rows(r.Reader.Sheet.Name)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// prepare the slice Container
 	slice := reflect.MakeSlice(reflect.SliceOf(r.container.Type), 0, 0)
+
+	// prepare the result
+	result := &ReaderResult{}
 
 	// Loop throw all rows
 	for rows.Next() {
@@ -47,17 +50,26 @@ func (r *SliceReader) Unmarshall() error {
 
 		value, err := r.unmarshallRow(row)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		if value.IsValid() {
 			slice = reflect.Append(slice, value)
 		}
+
+		// Set the result
+		if result.Rows == 0 {
+			result.Columns = len(row)
+		}
 	}
 
+	// Set the result
+	result.Rows = slice.Len()
+
+	// Set the slice to the container
 	r.container.Value.Elem().Set(slice)
 
-	return rows.Close()
+	return result, rows.Close()
 }
 
 func (r *SliceReader) SetColumnsTags(_ map[string]*Tags) {

@@ -8,15 +8,22 @@ import (
 // IWriter interface
 // All writers must implement this interface
 type IWriter interface {
-	Marshall(data any) error
+	Marshall(data any) (*WriterResult, error)
 	SetColumnsTags(tags map[string]*Tags)
 }
 
 // Writer is the Excel writer
 type Writer struct {
-	file  *excelize.File
-	Sheet Sheet
-	Axis  Axis
+	file   *excelize.File
+	Sheet  Sheet
+	Axis   Axis
+	Result *WriterResult
+}
+
+// WriterResult is a struct that contains the result of the writer
+type WriterResult struct {
+	Rows    int
+	Columns int
 }
 
 // validate validates the writer
