@@ -152,6 +152,9 @@ func (w *StructWriter) writeRows(slice any) (row int, err error) {
 			value := values.Field(j)
 			f := w.Struct.GetField(j)
 			if !f.GetWriteIgnore() {
+				if value.Kind() == reflect.Pointer && value.IsNil() {
+					continue
+				}
 				cell, _ := excelize.CoordinatesToCellName(col+f.WriteTags.index, row)
 				cellValue, err := f.toCellValue(value.Interface())
 				if err != nil {
