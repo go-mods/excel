@@ -1,0 +1,7 @@
+# Use Task to define tasks and run them locally or in CI
+# For more information about Task, see https://taskfile.dev/#/usage?id=usage
+version: '3'
+
+# Import tasks from other files
+includes:
+  go: ./.task/go.taskfile.yml

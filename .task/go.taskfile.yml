@@ -1,0 +1,90 @@
+# Use Task to define tasks and run them locally or in CI
+# For more information about Task, see https://taskfile.dev/#/usage?id=usage
+version: '3'
+
+
+# Define tasks
+tasks:
+
+  default:
+    desc: "Run the default go tasks"
+    cmds:
+      - task: clean
+      - task: generate
+      - task: vet
+      - task: fmt
+      - task: lint
+      - task: test
+      - task: tidy
+      - task: gosec
+
+  clean:
+    desc: "Clean the go binary"
+    cmds:
+      - echo "Cleaning..."
+      - rm -f coverage.*
+    silent: true
+
+  generate:
+    desc: "Generate the go code"
+    cmds:
+      - echo "Generating..."
+      - go generate ./...
+    silent: true
+
+  vet:
+    desc: "Vet the go code"
+    cmds:
+      - echo "Vetting..."
+      - go vet ./...
+    silent: true
+
+  fmt:
+    desc: "Format the go code"
+    cmds:
+      - echo "Formatting..."
+      - go fmt ./...
+    silent: true
+
+  lint:
+    desc: "Lint the go code"
+    cmds:
+      - echo "Linting..."
+      - golangci-lint run ./...
+    silent: true
+
+  test:
+    desc: "Test the go code"
+    cmds:
+      - echo "Testing..."
+      - go test ./...
+    silent: true
+
+  test-coverage:
+    desc: "Test the go code with coverage"
+    cmds:
+      - echo "Generating test coverage..."
+      - go test -v ./... -covermode=atomic -coverpkg=./... -coverprofile coverage.out
+      - go tool cover -html coverage.out -o coverage.html
+    silent: true
+
+  tidy:
+    desc: "Tidy the go code"
+    cmds:
+      - echo "Tidying..."
+      - go mod tidy
+    silent: true
+
+  gosec:
+    desc: "Run gosec on the go code"
+    cmds:
+      - echo "Running gosec..."
+      - gosec ./...
+    silent: true
+
+  update:
+    desc: "Update the go dependencies"
+    cmds:
+      - echo "Updating dependencies..."
+      - go get -u ./...
+    silent: true
