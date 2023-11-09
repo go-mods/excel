@@ -3,13 +3,14 @@ package excel_test
 import (
 	"github.com/go-mods/excel"
 	"github.com/xuri/excelize/v2"
+	"path/filepath"
 	"testing"
 	"time"
 )
 
 var (
-	employeesTestFile   = "./test/employees.xlsx"
-	employeesExportFile = "./test/employees.gen.xlsx"
+	employeesTestFile   = filepath.Join("test", "employees.xlsx")
+	employeesExportFile = filepath.Join("test", "employees.gen.xlsx")
 	employeesSheet      = "Employees"
 	employeesAxis       = "A1"
 )
@@ -63,7 +64,7 @@ func TestReadEmployees(t *testing.T) {
 
 	// Configure what to read in the Excel file
 	xl, _ := excel.NewReader(file)
-	xl.SetSheetName(employeesSheet)
+	xl.SetSheet(xl.GetSheet(employeesSheet))
 	xl.SetAxis(employeesAxis)
 
 	// Unmarshal employees
@@ -89,7 +90,7 @@ func TestWriteEmployeesCustomOutput(t *testing.T) {
 
 	// Configure how to write in the Excel file
 	xl, _ := excel.NewWriter(file)
-	xl.SetSheetName(employeesSheet)
+	xl.SetSheet(xl.GetSheet(employeesSheet))
 	xl.SetAxis(employeesAxis)
 
 	// Set custom output
@@ -118,7 +119,7 @@ func TestWriteEmployeesCustomOutput(t *testing.T) {
 	fileRead, _ := excelize.OpenFile(employeesExportFile)
 	defer func() { _ = fileRead.Close() }()
 	xl, _ = excel.NewReader(fileRead)
-	xl.SetSheetName(employeesSheet)
+	xl.SetSheet(xl.GetSheet(employeesSheet))
 	xl.SetAxis(employeesAxis)
 
 	// Read the file
@@ -146,7 +147,7 @@ func TestWriteEmployees(t *testing.T) {
 
 	// Configure how to write in the Excel file
 	xl, _ := excel.NewWriter(file)
-	xl.SetSheetName(employeesSheet)
+	xl.SetSheet(xl.GetSheet(employeesSheet))
 	xl.SetAxis(employeesAxis)
 
 	// Unmarshal employees

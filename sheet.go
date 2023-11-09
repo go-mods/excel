@@ -5,126 +5,123 @@ import "github.com/xuri/excelize/v2"
 // Sheet represent the sheet in the
 // Excel file where data will read or write
 type Sheet struct {
+	file  *excelize.File
 	Name  string
 	Index int
 }
 
-// SetSheetName sets the sheet name to be used by the reader or writer
-func (e *Excel) SetSheetName(sheet string) {
+// Sheet returns the sheet object used by the reader or writer
+func (e *Excel) Sheet() *Sheet {
 	if e.Reader != nil {
-		e.Reader.setSheetName(sheet)
+		return &e.Reader.Sheet
 	}
 	if e.Writer != nil {
-		e.Writer.setSheetName(sheet)
+		return &e.Writer.Sheet
 	}
-}
-
-// GetSheetName gets the sheet name used by the reader or writer
-func (e *Excel) GetSheetName() string {
-	if e.Reader != nil {
-		return e.Reader.getSheetName()
-	}
-	if e.Writer != nil {
-		return e.Writer.getSheetName()
-	}
-	return ""
-}
-
-// SetSheetIndex sets the sheet index to be used by the reader or writer
-func (e *Excel) SetSheetIndex(index int) {
-	if e.Reader != nil {
-		e.Reader.setSheetIndex(index)
-	}
-	if e.Writer != nil {
-		e.Writer.setSheetIndex(index)
-	}
-}
-
-// GetSheetIndex gets the sheet index used by the reader or writer
-func (e *Excel) GetSheetIndex() int {
-	if e.Reader != nil {
-		i, err := e.Reader.getSheetIndex()
-		if err != nil {
-			return 0
-		}
-		return i
-	}
-	if e.Writer != nil {
-		i, err := e.Writer.getSheetIndex()
-		if err != nil {
-			return 0
-		}
-		return i
-	}
-	return 0
-}
-
-func (r *Reader) setSheetName(n string) {
-	_ = setSheetName(r.file, &r.Sheet, n)
-}
-
-func (r *Reader) getSheetName() string {
-	return getSheetName(r.file, &r.Sheet)
-}
-
-func (r *Reader) setSheetIndex(i int) {
-	setSheetIndex(r.file, &r.Sheet, i)
-}
-
-func (r *Reader) getSheetIndex() (int, error) {
-	return getSheetIndex(r.file, &r.Sheet)
-}
-
-func (r *Reader) isSheetValid() bool {
-	return isSheetValid(&r.Sheet)
-}
-
-func (w *Writer) setSheetName(n string) {
-	_ = setSheetName(w.file, &w.Sheet, n)
-}
-
-func (w *Writer) getSheetName() string {
-	return getSheetName(w.file, &w.Sheet)
-}
-
-func (w *Writer) setSheetIndex(i int) {
-	setSheetIndex(w.file, &w.Sheet, i)
-}
-
-func (w *Writer) getSheetIndex() (int, error) {
-	return getSheetIndex(w.file, &w.Sheet)
-}
-
-func (w *Writer) isSheetValid() bool {
-	return isSheetValid(&w.Sheet)
-}
-
-func setSheetName(file *excelize.File, sheet *Sheet, name string) error {
-	index, err := file.GetSheetIndex(name)
-	if err != nil {
-		return err
-	}
-	sheet.Index = index
-	sheet.Name = file.GetSheetName(sheet.Index)
 	return nil
 }
 
-func setSheetIndex(file *excelize.File, sheet *Sheet, i int) {
-	sheet.Name = file.GetSheetName(i)
-	sheet.Index, _ = file.GetSheetIndex(sheet.Name)
+// GetSheet returns the sheet object
+func (e *Excel) GetSheet(name string) *Sheet {
+	if e.File == nil {
+		return nil
+	}
+	sheet := &Sheet{
+		file: e.File,
+	}
+	// Get the sheet name
+	sheet.Name = name
+	// Get the sheet index
+	index, err := e.File.GetSheetIndex(name)
+	if err != nil {
+		return nil
+	}
+	sheet.Index = index
+	// Return the sheet
+	return sheet
 }
 
-func getSheetName(file *excelize.File, sheet *Sheet) string {
-	return file.GetSheetName(sheet.Index)
+// GetSheetFromIndex returns the sheet object
+func (e *Excel) GetSheetFromIndex(index int) *Sheet {
+	if e.File == nil {
+		return nil
+	}
+	sheet := &Sheet{
+		file: e.File,
+	}
+	// Get the sheet name
+	sheet.Name = e.File.GetSheetName(index)
+	// Get the sheet index
+	sheet.Index = index
+	// Return the sheet
+	return sheet
 }
 
-func getSheetIndex(file *excelize.File, sheet *Sheet) (int, error) {
-	return file.GetSheetIndex(sheet.Name)
+// GetActiveSheet returns the active sheet
+func (e *Excel) GetActiveSheet() *Sheet {
+	if e.File == nil {
+		return nil
+	}
+	sheet := &Sheet{
+		file: e.File,
+	}
+	// Get the sheet index
+	sheet.Index = e.File.GetActiveSheetIndex()
+	// Get the sheet name
+	sheet.Name = e.File.GetSheetName(sheet.Index)
+	// Return the sheet
+	return sheet
 }
 
-func isSheetValid(sheet *Sheet) bool {
-	if len(sheet.Name) > 0 && sheet.Index >= 0 {
+// SetActiveSheet sets the active sheet
+func (e *Excel) SetActiveSheet(sheet *Sheet) {
+	if e.File == nil {
+		return
+	}
+	// Set the active sheet
+	e.File.SetActiveSheet(sheet.Index)
+	// Set the sheet to be used by the reader or writer
+	e.SetSheet(sheet)
+}
+
+// SetSheet sets the sheet to be used by the reader or writer
+func (e *Excel) SetSheet(sheet *Sheet) {
+	if e.Reader != nil {
+		e.Reader.Sheet = *sheet
+	}
+	if e.Writer != nil {
+		e.Writer.Sheet = *sheet
+	}
+}
+
+// SetSheetFromName sets the sheet name to be used by the reader or writer
+func (e *Excel) SetSheetFromName(name string) {
+	e.SetSheet(e.GetSheet(name))
+}
+
+// SetSheetFromIndex sets the sheet index to be used by the reader or writer
+func (e *Excel) SetSheetFromIndex(index int) {
+	e.SetSheet(e.GetSheetFromIndex(index))
+}
+
+// IsValid returns true if the sheet is valid
+func (s *Sheet) IsValid() bool {
+	if s.file != nil && len(s.Name) > 0 && s.Index >= 0 {
 		return true
 	}
 	return false
+}
+
+// GetComment returns the comment of the cell
+func (s *Sheet) GetComment(cell string) *excelize.Comment {
+	if !s.IsValid() {
+		return nil
+	}
+	comments, _ := s.file.GetComments(s.Name)
+	for _, c := range comments {
+		if c.Cell == cell {
+			return &c
+		}
+	}
+	return nil
 }

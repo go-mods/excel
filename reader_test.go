@@ -165,7 +165,7 @@ func TestActiveFieldTags_ColumnName(t *testing.T) {
 	defer func() { _ = inFile.Close() }()
 
 	inExcel, _ := NewReader(inFile)
-	inExcel.SetSheetName(inFile.GetSheetName(inFile.GetActiveSheetIndex()))
+	inExcel.SetSheet(inExcel.GetActiveSheet())
 	inExcel.SetAxis("A1")
 
 	_ = inExcel.Unmarshal(&users)
@@ -183,7 +183,7 @@ func TestActiveFieldTags_ColumnName(t *testing.T) {
 	defer func() { _ = outFile.Close() }()
 
 	outExcel, _ := NewWriter(outFile)
-	outExcel.SetSheetName(outFile.GetSheetName(outFile.GetActiveSheetIndex()))
+	outExcel.SetSheet(outExcel.GetActiveSheet())
 	outExcel.SetAxis("A1")
 
 	_ = outExcel.Marshal(&users)
@@ -214,7 +214,7 @@ func TestActiveFieldTags_DefaultValue(t *testing.T) {
 	defer func() { _ = inFile.Close() }()
 
 	inExcel, _ := NewReader(inFile)
-	inExcel.SetSheetIndex(0)
+	inExcel.SetSheetFromIndex(0)
 	inExcel.SetAxisCoordinates(1, 1)
 
 	_ = inExcel.Unmarshal(&users)
@@ -232,7 +232,7 @@ func TestActiveFieldTags_DefaultValue(t *testing.T) {
 	defer func() { _ = outFile.Close() }()
 
 	outExcel, _ := NewWriter(outFile)
-	outExcel.SetSheetIndex(0)
+	outExcel.SetSheetFromIndex(0)
 	outExcel.SetAxisCoordinates(1, 1)
 
 	_ = outExcel.Marshal(&users)
@@ -257,7 +257,7 @@ func TestActiveFieldTags_Ignored(t *testing.T) {
 	defer func() { _ = inFile.Close() }()
 
 	inExcel, _ := NewReader(inFile)
-	inExcel.SetSheetName(inFile.GetSheetName(inFile.GetActiveSheetIndex()))
+	inExcel.SetSheet(inExcel.GetActiveSheet())
 	inExcel.SetAxis("A1")
 
 	_ = inExcel.Unmarshal(&users)
@@ -275,7 +275,7 @@ func TestActiveFieldTags_Ignored(t *testing.T) {
 	defer func() { _ = outFile.Close() }()
 
 	outExcel, _ := NewWriter(outFile)
-	outExcel.SetSheetName(outFile.GetSheetName(outFile.GetActiveSheetIndex()))
+	outExcel.SetSheet(outExcel.GetActiveSheet())
 	outExcel.SetAxis("A1")
 
 	_ = outExcel.Marshal(&users)
@@ -298,7 +298,7 @@ func TestActiveFieldTags_Encoding(t *testing.T) {
 	defer func() { _ = inFile.Close() }()
 
 	inExcel, _ := NewReader(inFile)
-	inExcel.SetSheetName(inFile.GetSheetName(inFile.GetActiveSheetIndex()))
+	inExcel.SetSheet(inExcel.GetActiveSheet())
 	inExcel.SetAxis("A1")
 
 	_ = inExcel.Unmarshal(&users)
@@ -316,7 +316,7 @@ func TestActiveFieldTags_Encoding(t *testing.T) {
 	defer func() { _ = outFile.Close() }()
 
 	outExcel, _ := NewWriter(outFile)
-	outExcel.SetSheetName(outFile.GetSheetName(outFile.GetActiveSheetIndex()))
+	outExcel.SetSheet(outExcel.GetActiveSheet())
 	outExcel.SetAxis("A1")
 
 	_ = outExcel.Marshal(&users)
@@ -340,7 +340,7 @@ func TestActiveFieldTags_Format(t *testing.T) {
 	defer func() { _ = inFile.Close() }()
 
 	inExcel, _ := NewReader(inFile)
-	inExcel.SetSheetName(inFile.GetSheetName(inFile.GetActiveSheetIndex()))
+	inExcel.SetSheet(inExcel.GetActiveSheet())
 	inExcel.SetAxis("A1")
 
 	_ = inExcel.Unmarshal(&users)
@@ -366,7 +366,7 @@ func TestActiveFieldTags_Format(t *testing.T) {
 	defer func() { _ = outFile.Close() }()
 
 	outExcel, _ := NewWriter(outFile)
-	outExcel.SetSheetName(outFile.GetSheetName(outFile.GetActiveSheetIndex()))
+	outExcel.SetSheet(outExcel.GetActiveSheet())
 	outExcel.SetAxis("A1")
 
 	_ = outExcel.Marshal(&users)
@@ -390,7 +390,7 @@ func TestActiveFieldTags_Split(t *testing.T) {
 	defer func() { _ = inFile.Close() }()
 
 	inExcel, _ := NewReader(inFile)
-	inExcel.SetSheetName(inFile.GetSheetName(inFile.GetActiveSheetIndex()))
+	inExcel.SetSheet(inExcel.GetActiveSheet())
 	inExcel.SetAxis("A1")
 
 	_ = inExcel.Unmarshal(&users)
@@ -420,7 +420,7 @@ func TestActiveFieldTags_Split(t *testing.T) {
 	defer func() { _ = outFile.Close() }()
 
 	outExcel, _ := NewWriter(outFile)
-	outExcel.SetSheetName(outFile.GetSheetName(outFile.GetActiveSheetIndex()))
+	outExcel.SetSheet(outExcel.GetActiveSheet())
 	outExcel.SetAxis("A1")
 
 	_ = outExcel.Marshal(&users)
@@ -449,7 +449,7 @@ func TestActiveFieldTags_Required(t *testing.T) {
 	defer func() { _ = inFile.Close() }()
 
 	inExcel, _ := NewReader(inFile)
-	inExcel.SetSheetName(inFile.GetSheetName(inFile.GetActiveSheetIndex()))
+	inExcel.SetSheet(inExcel.GetActiveSheet())
 	inExcel.SetAxis("A1")
 
 	err := inExcel.Unmarshal(&simpleUsers)
@@ -481,7 +481,7 @@ func TestConverter(t *testing.T) {
 	defer func() { _ = file.Close() }()
 
 	outExcel, _ := NewWriter(file)
-	outExcel.SetSheetName(file.GetSheetName(file.GetActiveSheetIndex()))
+	outExcel.SetSheet(outExcel.GetActiveSheet())
 	outExcel.SetAxis("A1")
 
 	err := outExcel.Marshal(&simpleUsers)
@@ -490,7 +490,7 @@ func TestConverter(t *testing.T) {
 		return
 	}
 
-	dateValue, _ := file.GetCellValue(outExcel.GetSheetName(), "C2")
+	dateValue, _ := file.GetCellValue(outExcel.Sheet().Name, "C2")
 
 	if dateValue != "20223112" {
 		t.Error("Marshal() error")
@@ -500,7 +500,7 @@ func TestConverter(t *testing.T) {
 	var usersOut []*SimpleUser
 
 	inExcel, _ := NewReader(file)
-	inExcel.SetSheetName(outExcel.GetSheetName())
+	inExcel.SetSheet(outExcel.Sheet())
 	inExcel.SetAxis("A1")
 
 	_ = inExcel.Unmarshal(&usersOut)
@@ -537,7 +537,7 @@ func TestSliceRead_string(t *testing.T) {
 	defer func() { _ = file.Close() }()
 
 	xl, _ := NewReader(file)
-	xl.SetSheetName(file.GetSheetName(file.GetActiveSheetIndex()))
+	xl.SetSheet(xl.GetActiveSheet())
 	xl.SetAxis("A1")
 
 	var stringSlice MyStringSlice
@@ -563,7 +563,7 @@ func TestSliceRead_int(t *testing.T) {
 	defer func() { _ = file.Close() }()
 
 	xl, _ := NewReader(file)
-	xl.SetSheetName(file.GetSheetName(file.GetActiveSheetIndex()))
+	xl.SetSheet(xl.GetActiveSheet())
 	xl.SetAxis("A1")
 
 	var intSlice MyIntSlice
@@ -589,7 +589,7 @@ func TestSliceRead_any(t *testing.T) {
 	defer func() { _ = file.Close() }()
 
 	xl, _ := NewReader(file)
-	xl.SetSheetName(file.GetSheetName(file.GetActiveSheetIndex()))
+	xl.SetSheet(xl.GetActiveSheet())
 	xl.SetAxis("A1")
 
 	var anySlice MyAnySlice
@@ -620,7 +620,7 @@ func TestMapRead_string(t *testing.T) {
 	defer func() { _ = file.Close() }()
 
 	xl, _ := NewReader(file)
-	xl.SetSheetName(file.GetSheetName(file.GetActiveSheetIndex()))
+	xl.SetSheet(xl.GetActiveSheet())
 	xl.SetAxis("A1")
 
 	var mapString MyMapString
@@ -651,7 +651,7 @@ func TestMapRead_int(t *testing.T) {
 	defer func() { _ = file.Close() }()
 
 	xl, _ := NewReader(file)
-	xl.SetSheetName(file.GetSheetName(file.GetActiveSheetIndex()))
+	xl.SetSheet(xl.GetActiveSheet())
 	xl.SetAxis("A1")
 
 	var mapInt MyMapInt
@@ -682,7 +682,7 @@ func TestMapRead_any(t *testing.T) {
 	defer func() { _ = file.Close() }()
 
 	xl, _ := NewReader(file)
-	xl.SetSheetName(file.GetSheetName(file.GetActiveSheetIndex()))
+	xl.SetSheet(xl.GetActiveSheet())
 	xl.SetAxis("A1")
 
 	var mapAny MyMapAny

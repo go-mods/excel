@@ -34,7 +34,7 @@ func (w *Writer) validate() error {
 	if w.file == nil {
 		return ErrFileIsNil
 	}
-	if !w.isSheetValid() {
+	if !w.Sheet.IsValid() {
 		return ErrSheetNotValid
 	}
 	if !w.isAxisValid() {

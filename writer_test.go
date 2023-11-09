@@ -126,7 +126,7 @@ func TestSliceWriter_string(t *testing.T) {
 	defer func() { _ = file.Close() }()
 
 	xl, _ := NewWriter(file)
-	xl.SetSheetName(file.GetSheetName(file.GetActiveSheetIndex()))
+	xl.SetSheet(xl.GetActiveSheet())
 	xl.SetAxis("A1")
 
 	err := xl.Marshal(&stringSlice)
@@ -159,7 +159,7 @@ func TestSliceWriter_int(t *testing.T) {
 	defer func() { _ = file.Close() }()
 
 	xl, _ := NewWriter(file)
-	xl.SetSheetName(file.GetSheetName(file.GetActiveSheetIndex()))
+	xl.SetSheet(xl.GetActiveSheet())
 	xl.SetAxis("A1")
 
 	err := xl.Marshal(&intSlice)
@@ -193,7 +193,7 @@ func TestSliceWriter_any(t *testing.T) {
 	defer func() { _ = file.Close() }()
 
 	xl, _ := NewWriter(file)
-	xl.SetSheetName(file.GetSheetName(file.GetActiveSheetIndex()))
+	xl.SetSheet(xl.GetActiveSheet())
 	xl.SetAxis("A1")
 
 	err := xl.Marshal(&anySlice)
@@ -226,7 +226,7 @@ func TestMapWrite_string(t *testing.T) {
 	defer func() { _ = file.Close() }()
 
 	xl, _ := NewWriter(file)
-	xl.SetSheetName(file.GetSheetName(file.GetActiveSheetIndex()))
+	xl.SetSheet(xl.GetActiveSheet())
 	xl.SetAxis("A1")
 
 	err := xl.Marshal(&mapString)
@@ -260,7 +260,7 @@ func TestMapWrite_int(t *testing.T) {
 	defer func() { _ = file.Close() }()
 
 	xl, _ := NewWriter(file)
-	xl.SetSheetName(file.GetSheetName(file.GetActiveSheetIndex()))
+	xl.SetSheet(xl.GetActiveSheet())
 	xl.SetAxis("A1")
 
 	err := xl.Marshal(&mapInt)
@@ -294,7 +294,7 @@ func TestMapWrite_any(t *testing.T) {
 	defer func() { _ = file.Close() }()
 
 	xl, _ := NewWriter(file)
-	xl.SetSheetName(file.GetSheetName(file.GetActiveSheetIndex()))
+	xl.SetSheet(xl.GetActiveSheet())
 	xl.SetAxis("A1")
 
 	err := xl.Marshal(&mapAny)
@@ -337,7 +337,7 @@ func TestMapWrite_string_interface(t *testing.T) {
 	defer func() { _ = file.Close() }()
 
 	xl, _ := NewWriter(file)
-	xl.SetSheetName(file.GetSheetName(file.GetActiveSheetIndex()))
+	xl.SetSheet(xl.GetActiveSheet())
 	xl.SetAxis("A1")
 
 	err := xl.Marshal(&mapAny)

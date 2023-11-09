@@ -34,7 +34,7 @@ func (r *Reader) validate() error {
 	if r.file == nil {
 		return ErrFileIsNil
 	}
-	if !r.isSheetValid() {
+	if !r.Sheet.IsValid() {
 		return ErrSheetNotValid
 	}
 	if !r.isAxisValid() {
