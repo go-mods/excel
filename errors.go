@@ -12,6 +12,9 @@ var (
 	ErrSheetNameEmpty = errors.New("excel: the sheet name is empty")
 	ErrSheetIndex     = errors.New("excel: the sheet index is not valid")
 
+	ErrTableNameEmpty = errors.New("excel: the table name is empty")
+	ErrTableRange     = errors.New("excel: the table range is not valid")
+
 	ErrMapKeyNotString   = errors.New("excel: the map key must be a string")
 	ErrNoReaderFound     = errors.New("excel: unable to create an appropriate reader")
 	ErrNoWriterFound     = errors.New("excel: unable to create an appropriate writer")
