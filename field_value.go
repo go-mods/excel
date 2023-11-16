@@ -174,11 +174,12 @@ func (f *Field) encode(from interface{}, fieldType reflect.Type) (value reflect.
 				}
 				return reflect.ValueOf(s), nil
 			}
-			s, err := convert.ToTimeString(dt)
-			if err != nil {
-				return reflect.Value{}, err
-			}
-			return reflect.ValueOf(s), nil
+			//s, err := convert.ToTimeString(dt)
+			//if err != nil {
+			//	return reflect.Value{}, err
+			//}
+			//return reflect.ValueOf(s), nil
+			return reflect.ValueOf(dt), nil
 		} else {
 			value, err = convert.ToValue(from, fieldType)
 		}
