@@ -1,6 +1,7 @@
 package excel
 
 import (
+	"fmt"
 	"github.com/xuri/excelize/v2"
 	"strings"
 )
@@ -51,9 +52,29 @@ func ToRange(ref string) (*Range, error) {
 	return r, nil
 }
 
+// MinRange returns the minimum range
+func MinRange(startName string) (*Range, error) {
+	return ToRange(fmt.Sprintf("%s:%s", startName, startName))
+}
+
 // ToRef converts a Range to a string
 func (r *Range) ToRef() string {
 	return r.StartName + ":" + r.EndName
+}
+
+// UpdateNames updates the name of the range
+func (r *Range) UpdateNames() error {
+	startName, err := excelize.CoordinatesToCellName(r.StartColumn, r.StartRow)
+	if err != nil {
+		return err
+	}
+	r.StartName = startName
+	endName, err := excelize.CoordinatesToCellName(r.EndColumn, r.EndRow)
+	if err != nil {
+		return err
+	}
+	r.EndName = endName
+	return nil
 }
 
 // Rows returns the number of rows in the range
@@ -64,28 +85,13 @@ func (r *Range) Rows() int {
 // AddRows adds rows to the range
 func (r *Range) AddRows(rows int) error {
 	r.EndRow += rows
-	endName, err := excelize.CoordinatesToCellName(r.EndColumn, r.EndRow)
-	if err != nil {
-		return err
-	}
-	r.EndName = endName
-	return nil
+	return r.UpdateNames()
 }
 
 // RemoveRows removes rows from the range
 func (r *Range) RemoveRows(rows int) error {
 	r.EndRow -= rows
-	endName, err := excelize.CoordinatesToCellName(r.EndColumn, r.EndRow)
-	if err != nil {
-		return err
-	}
-	r.EndName = endName
-	return nil
-}
-
-// Columns returns the number of columns in the range
-func (r *Range) Columns() int {
-	return r.EndColumn - r.StartColumn + 1
+	return r.UpdateNames()
 }
 
 // SetRows sets the number of rows in the range
@@ -99,26 +105,46 @@ func (r *Range) SetRows(rows int) error {
 	return nil
 }
 
+// RowAsRange returns the range of the row
+func (r *Range) RowAsRange(row int) (*Range, error) {
+	if row < r.StartRow || row > r.EndRow {
+		return nil, excelize.ErrParameterInvalid
+	}
+	rRange := Range{
+		StartColumn: r.StartColumn,
+		StartRow:    row,
+		EndColumn:   r.EndColumn,
+		EndRow:      row,
+	}
+
+	return &rRange, rRange.UpdateNames()
+}
+
+// FirstRowAsRange returns the range of the first row
+func (r *Range) FirstRowAsRange() (*Range, error) {
+	return r.RowAsRange(r.StartRow)
+}
+
+// LastRowAsRange returns the range of the last row
+func (r *Range) LastRowAsRange() (*Range, error) {
+	return r.RowAsRange(r.EndRow)
+}
+
+// Columns returns the number of columns in the range
+func (r *Range) Columns() int {
+	return r.EndColumn - r.StartColumn + 1
+}
+
 // AddColumns adds columns to the range
 func (r *Range) AddColumns(columns int) error {
 	r.EndColumn += columns
-	endName, err := excelize.CoordinatesToCellName(r.EndColumn, r.EndRow)
-	if err != nil {
-		return err
-	}
-	r.EndName = endName
-	return nil
+	return r.UpdateNames()
 }
 
 // RemoveColumns removes columns from the range
 func (r *Range) RemoveColumns(columns int) error {
 	r.EndColumn -= columns
-	endName, err := excelize.CoordinatesToCellName(r.EndColumn, r.EndRow)
-	if err != nil {
-		return err
-	}
-	r.EndName = endName
-	return nil
+	return r.UpdateNames()
 }
 
 // SetColumns sets the number of columns in the range
@@ -130,4 +156,29 @@ func (r *Range) SetColumns(columns int) error {
 		return r.RemoveColumns(nbColumns - columns)
 	}
 	return nil
+}
+
+// ColumnAsRange returns the range of the column
+func (r *Range) ColumnAsRange(column int) (*Range, error) {
+	if column < r.StartColumn || column > r.EndColumn {
+		return nil, excelize.ErrParameterInvalid
+	}
+	rRange := Range{
+		StartColumn: column,
+		StartRow:    r.StartRow,
+		EndColumn:   column,
+		EndRow:      r.EndRow,
+	}
+
+	return &rRange, rRange.UpdateNames()
+}
+
+// FirstColumnAsRange returns the range of the first column
+func (r *Range) FirstColumnAsRange() (*Range, error) {
+	return r.ColumnAsRange(r.StartColumn)
+}
+
+// LastColumnAsRange returns the range of the last column
+func (r *Range) LastColumnAsRange() (*Range, error) {
+	return r.ColumnAsRange(r.EndColumn)
 }
