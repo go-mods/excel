@@ -26,11 +26,13 @@ func (e *Excel) GetSheet(name string) *Sheet {
 	if e.File == nil {
 		return nil
 	}
+	if name == "" {
+		return nil
+	}
 	sheet := &Sheet{
 		file: e.File,
+		Name: name,
 	}
-	// Get the sheet name
-	sheet.Name = name
 	// Get the sheet index
 	index, err := e.File.GetSheetIndex(name)
 	if err != nil {
@@ -106,10 +108,21 @@ func (e *Excel) SetSheetFromIndex(index int) {
 
 // IsValid returns true if the sheet is valid
 func (s *Sheet) IsValid() bool {
-	if s.file != nil && len(s.Name) > 0 && s.Index >= 0 {
-		return true
+	return s.IsValidError() == nil
+}
+
+// IsValidError returns an error if the sheet is not valid
+func (s *Sheet) IsValidError() error {
+	if s.file == nil {
+		return ErrFileIsNil
 	}
-	return false
+	if len(s.Name) == 0 {
+		return ErrSheetNameEmpty
+	}
+	if s.Index < 0 {
+		return ErrSheetIndex
+	}
+	return nil
 }
 
 // GetComment returns the comment of the cell
