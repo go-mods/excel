@@ -169,5 +169,5 @@ func (w *StructWriter) writeRows(slice any) (row int, err error) {
 		row++
 	}
 
-	return row, nil
+	return row - 1, nil
 }
