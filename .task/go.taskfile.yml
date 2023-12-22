@@ -11,11 +11,11 @@ tasks:
     cmds:
       - task: clean
       - task: generate
-      - task: vet
       - task: fmt
-      - task: lint
-      - task: test
+      - task: vet
       - task: tidy
+      - task: test
+      - task: lint
       - task: gosec
 
   clean:

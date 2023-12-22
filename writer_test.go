@@ -347,16 +347,20 @@ func TestMapWrite_string_interface(t *testing.T) {
 	}
 
 	sA1, _ := file.GetCellValue(file.GetSheetName(file.GetActiveSheetIndex()), "A1")
-	sB1, _ := file.GetCellValue(file.GetSheetName(file.GetActiveSheetIndex()), "B1")
-	sA2, _ := file.GetCellValue(file.GetSheetName(file.GetActiveSheetIndex()), "A2")
-	sB2, _ := file.GetCellValue(file.GetSheetName(file.GetActiveSheetIndex()), "B2")
-	sA3, _ := file.GetCellValue(file.GetSheetName(file.GetActiveSheetIndex()), "A3")
-	sB3, _ := file.GetCellValue(file.GetSheetName(file.GetActiveSheetIndex()), "B3")
-
 	assert.Equal(t, sA1, "ID", "they should be equal")
+
+	sB1, _ := file.GetCellValue(file.GetSheetName(file.GetActiveSheetIndex()), "B1")
 	assert.Equal(t, sB1, "Name", "they should be equal")
+
+	sA2, _ := file.GetCellValue(file.GetSheetName(file.GetActiveSheetIndex()), "A2")
 	assert.Equal(t, sA2, "1", "they should be equal")
+
+	sB2, _ := file.GetCellValue(file.GetSheetName(file.GetActiveSheetIndex()), "B2")
 	assert.Equal(t, sB2, "John Doe", "they should be equal")
+
+	sA3, _ := file.GetCellValue(file.GetSheetName(file.GetActiveSheetIndex()), "A3")
 	assert.Equal(t, sA3, "2", "they should be equal")
+
+	sB3, _ := file.GetCellValue(file.GetSheetName(file.GetActiveSheetIndex()), "B3")
 	assert.Equal(t, sB3, "Jane Doe", "they should be equal")
 }

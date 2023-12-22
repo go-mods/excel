@@ -1,6 +1,7 @@
 package excel
 
 import (
+	"github.com/go-mods/convert"
 	"github.com/go-mods/tags"
 	"reflect"
 )
@@ -45,7 +46,7 @@ func (s *Struct) getTags(field reflect.StructField, key string) (t *Tags) {
 func (s *Struct) parseTag(tag *tags.Tag) (t *Tags) {
 	t = newTag()
 
-	if tag.Name == ignoreTag {
+	if tag.Value == ignoreTag {
 		t.Ignore = true
 		return
 	}
@@ -55,20 +56,20 @@ func (s *Struct) parseTag(tag *tags.Tag) (t *Tags) {
 	}
 
 	if o := tag.GetOption(columnTag); o != nil {
-		t.Column = o.Value
+		t.Column = convert.ToValidString(o.Value)
 	}
 	if o := tag.GetOption(defaultTag); o != nil {
 		t.Default = o.Value
 	}
 	if o := tag.GetOption(formatTag); o != nil {
-		t.Format = o.Value
+		t.Format = convert.ToValidString(o.Value)
 	}
 	if o := tag.GetOption(encodingTag); o != nil {
-		t.Encoding = o.Value
+		t.Encoding = convert.ToValidString(o.Value)
 	}
 	if o := tag.GetOption(splitTag); o != nil {
-		if len(o.Value) != 0 {
-			t.Split = o.Value
+		if o.Value != nil {
+			t.Split = convert.ToValidString(o.Value)
 		}
 	}
 	if o := tag.GetOption(requiredTag); o != nil {
