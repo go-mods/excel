@@ -1,10 +1,11 @@
 package excel
 
 import (
-	"github.com/go-mods/convert"
 	"reflect"
 	"strings"
 	"time"
+
+	"github.com/go-mods/convert"
 )
 
 var timeType = reflect.TypeOf((*time.Time)(nil)).Elem()
@@ -35,7 +36,7 @@ func (f *Field) toValue(from string) (value reflect.Value, err error) {
 	// Decode the value of the field if it is a slice or array
 	if f.Type.Kind() == reflect.Slice || f.Type.Kind() == reflect.Array {
 		if len(from) > 0 {
-			values := strings.Split(convert.ToValidString(from), f.GetReadSplit())
+			values := strings.Split(convert.ToString(from), f.GetReadSplit())
 			value = reflect.MakeSlice(reflect.SliceOf(f.Type.Elem()), 0, len(values))
 			for _, vs := range values {
 				v, err := f.decode(vs, f.Type.Elem())
@@ -72,10 +73,10 @@ func (f *Field) toValue(from string) (value reflect.Value, err error) {
 func (f *Field) decode(from string, to reflect.Type) (value reflect.Value, err error) {
 	switch f.GetReadEncoding() {
 	case "json":
-		value, err = convert.ToJsonValue(from, to)
+		value, err = convert.ToJsonValueE(from, to)
 	default:
 		if f.Type == timeType {
-			dt, err := convert.ToLayoutTime(f.GetReadFormat(), from)
+			dt, err := convert.ToLayoutTimeE(f.GetReadFormat(), from)
 			if err != nil {
 				return reflect.Value{}, nil
 			}
@@ -84,7 +85,7 @@ func (f *Field) decode(from string, to reflect.Type) (value reflect.Value, err e
 			if len(from) == 0 {
 				value = reflect.ValueOf(f.GetReadDefault())
 			} else {
-				value, err = convert.ToValue(from, to)
+				value, err = convert.ToValueE(from, to)
 			}
 		}
 	}
@@ -125,7 +126,7 @@ func (f *Field) toCellValue(from interface{}) (interface{}, error) {
 			if err != nil {
 				return nil, err
 			}
-			values = append(values, convert.ToValidString(es))
+			values = append(values, convert.ToString(es))
 		}
 		return strings.Join(values, f.GetWriteSplit()), nil
 	}
@@ -142,7 +143,7 @@ func (f *Field) toCellValue(from interface{}) (interface{}, error) {
 	}
 
 	// Return the default value if the value is empty
-	if len(convert.ToValidString(from)) == 0 {
+	if len(convert.ToString(from)) == 0 {
 		return f.GetWriteDefault(), nil
 	} else {
 		return encoded.Interface(), nil
@@ -153,14 +154,14 @@ func (f *Field) toCellValue(from interface{}) (interface{}, error) {
 func (f *Field) encode(from interface{}, fieldType reflect.Type) (value reflect.Value, err error) {
 	switch f.GetWriteEncoding() {
 	case "json":
-		j, err := convert.ToJsonString(from)
+		j, err := convert.ToJsonStringE(from)
 		if err != nil {
 			return reflect.Value{}, err
 		}
 		return reflect.ValueOf(j), nil
 	default:
 		if f.Type == timeType {
-			dt, err := convert.ToTime(from)
+			dt, err := convert.ToTimeE(from)
 			if err != nil {
 				return reflect.Value{}, err
 			}
@@ -168,20 +169,20 @@ func (f *Field) encode(from interface{}, fieldType reflect.Type) (value reflect.
 				return reflect.ValueOf(""), nil
 			}
 			if len(f.GetWriteFormat()) > 0 {
-				s, err := convert.ToTimeString(dt, f.GetWriteFormat())
+				s, err := convert.ToTimeStringE(dt, f.GetWriteFormat())
 				if err != nil {
 					return reflect.Value{}, err
 				}
 				return reflect.ValueOf(s), nil
 			}
-			//s, err := convert.ToTimeString(dt)
-			//if err != nil {
+			// s, err := convert.ToTimeString(dt)
+			// if err != nil {
 			//	return reflect.Value{}, err
-			//}
-			//return reflect.ValueOf(s), nil
+			// }
+			// return reflect.ValueOf(s), nil
 			return reflect.ValueOf(dt), nil
 		} else {
-			value, err = convert.ToValue(from, fieldType)
+			value, err = convert.ToValueE(from, fieldType)
 		}
 	}
 	return

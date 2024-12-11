@@ -1,8 +1,9 @@
 package excel
 
 import (
-	"github.com/go-mods/convert"
 	"reflect"
+
+	"github.com/go-mods/convert"
 )
 
 type SliceReader struct {
@@ -93,13 +94,13 @@ func (r *SliceReader) unmarshallRow(row []string) (reflect.Value, error) {
 
 	// loop throw all cells of the row
 	for index, cell := range row {
-		sCell := convert.ToValidString(cell)
-		value, err := convert.ToValue(sCell, containerValueType)
+		sCell := convert.ToString(cell)
+		value, err := convert.ToValueE(sCell, containerValueType)
 		if err != nil {
 			// try to fins the type
 			t := convert.GetConvertType(sCell)
 			if t != nil {
-				value, err = convert.ToValue(sCell, t)
+				value, err = convert.ToValueE(sCell, t)
 				if err != nil {
 					return reflect.Value{}, err
 				}

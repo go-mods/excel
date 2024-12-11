@@ -56,20 +56,20 @@ func (s *Struct) parseTag(tag *tags.Tag) (t *Tags) {
 	}
 
 	if o := tag.GetOption(columnTag); o != nil {
-		t.Column = convert.ToValidString(o.Value)
+		t.Column = convert.ToString(o.Value)
 	}
 	if o := tag.GetOption(defaultTag); o != nil {
 		t.Default = o.Value
 	}
 	if o := tag.GetOption(formatTag); o != nil {
-		t.Format = convert.ToValidString(o.Value)
+		t.Format = convert.ToString(o.Value)
 	}
 	if o := tag.GetOption(encodingTag); o != nil {
-		t.Encoding = convert.ToValidString(o.Value)
+		t.Encoding = convert.ToString(o.Value)
 	}
 	if o := tag.GetOption(splitTag); o != nil {
 		if o.Value != nil {
-			t.Split = convert.ToValidString(o.Value)
+			t.Split = convert.ToString(o.Value)
 		}
 	}
 	if o := tag.GetOption(requiredTag); o != nil {
