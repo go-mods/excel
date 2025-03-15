@@ -1,6 +1,7 @@
 package excel
 
 import (
+	"fmt"
 	"reflect"
 
 	"github.com/go-mods/convert"
@@ -109,7 +110,10 @@ func (r *SliceReader) unmarshallRow(row []string) (reflect.Value, error) {
 
 		// Assign the value to the containerValue
 		if value.IsValid() {
-			r.container.assign(containerValue, index, value)
+			err := r.container.assign(containerValue, index, value)
+			if err != nil {
+				return reflect.Value{}, fmt.Errorf("excel: failed to assign value at index %d: %w", index, err)
+			}
 		}
 	}
 
