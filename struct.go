@@ -1,9 +1,10 @@
 package excel
 
 import (
+	"reflect"
+
 	"github.com/go-mods/convert"
 	"github.com/go-mods/tags"
-	"reflect"
 )
 
 // Struct is a struct used to store information about a struct

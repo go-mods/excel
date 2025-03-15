@@ -1,11 +1,12 @@
 package excel
 
 import (
-	"github.com/stretchr/testify/assert"
-	"github.com/xuri/excelize/v2"
 	"reflect"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/xuri/excelize/v2"
 )
 
 type MyStruct struct {

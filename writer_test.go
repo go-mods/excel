@@ -1,10 +1,11 @@
 package excel
 
 import (
-	"github.com/stretchr/testify/assert"
-	"github.com/xuri/excelize/v2"
 	"reflect"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/xuri/excelize/v2"
 )
 
 func TestWriter_newWriter(t *testing.T) {

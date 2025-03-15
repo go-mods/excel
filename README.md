@@ -51,9 +51,9 @@ type Employee struct {
 }
 
 type EncodedName struct {
-	FirstName string `json:"first_name"`
-	LastName  string `json:"last_name"`
-	FullName  string `json:"full_name"`
+    FirstName string `json:"first_name"`
+    LastName  string `json:"last_name"`
+    FullName  string `json:"full_name"`
 }
 ```
 
@@ -64,8 +64,8 @@ type EncodedName struct {
 package main
 
 import (
-	"github.com/go-mods/excel"
-	"github.com/xuri/excelize/v2"
+    "github.com/go-mods/excel"
+    "github.com/xuri/excelize/v2"
 )
 
 func main() {
@@ -81,7 +81,7 @@ func main() {
     excel.SetSheetName(employeesSheet)
     excel.SetAxis(employeesAxis)
 
-	// Unmarshal employees
+    // Unmarshal employees
     err := excel.Unmarshal(&employees)
     if err != nil {
         t.Error(err)
@@ -96,8 +96,8 @@ func main() {
 package main
 
 import (
-	"github.com/go-mods/excel"
-	"github.com/xuri/excelize/v2"
+    "github.com/go-mods/excel"
+    "github.com/xuri/excelize/v2"
 )
 
 func main() {

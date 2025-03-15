@@ -1,9 +1,10 @@
 package excel
 
 import (
+	"testing"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/xuri/excelize/v2"
-	"testing"
 )
 
 func TestGetTable(t *testing.T) {

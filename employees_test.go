@@ -1,11 +1,12 @@
 package excel_test
 
 import (
-	"github.com/go-mods/excel"
-	"github.com/xuri/excelize/v2"
 	"path/filepath"
 	"testing"
 	"time"
+
+	"github.com/go-mods/excel"
+	"github.com/xuri/excelize/v2"
 )
 
 var (

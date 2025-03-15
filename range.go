@@ -2,8 +2,9 @@ package excel
 
 import (
 	"fmt"
-	"github.com/xuri/excelize/v2"
 	"strings"
+
+	"github.com/xuri/excelize/v2"
 )
 
 // Range represent the range in the Excel file
