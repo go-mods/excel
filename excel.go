@@ -4,6 +4,8 @@ import (
 	"github.com/xuri/excelize/v2"
 )
 
+// Excel is the main structure that provides functionality for reading from and writing to Excel files.
+// It contains references to the underlying excelize.File, Reader, Writer, and Struct components.
 type Excel struct {
 	File   *excelize.File
 	Reader *Reader
@@ -12,7 +14,9 @@ type Excel struct {
 	Struct *Struct
 }
 
-// NewReader creates a new Excel reader
+// NewReader creates a new Excel reader from an existing excelize.File.
+// It returns an error if the file is nil.
+// The returned Excel instance can be used to unmarshal Excel data into Go structures.
 func NewReader(file *excelize.File) (*Excel, error) {
 	if file == nil {
 		return nil, ErrFileIsNil
@@ -27,7 +31,10 @@ func NewReader(file *excelize.File) (*Excel, error) {
 	return e, nil
 }
 
-// Unmarshal reads the Excel file and unmarshals it into the container
+// Unmarshal reads the Excel file and unmarshals it into the provided container.
+// The container must be a pointer to a slice of structs, maps, or slices.
+// Optional tags can be provided to customize the unmarshaling process.
+// It returns an error if the Excel configuration is invalid or if unmarshaling fails.
 func (e *Excel) Unmarshal(container any, tags ...map[string]*Tags) error {
 	// validate excel input
 	err := e.validate()
@@ -56,7 +63,9 @@ func (e *Excel) Unmarshal(container any, tags ...map[string]*Tags) error {
 	return err
 }
 
-// NewWriter create the configuration used by the writer
+// NewWriter creates a new Excel writer from an existing excelize.File.
+// It returns an error if the file is nil.
+// The returned Excel instance can be used to marshal Go structures into Excel data.
 func NewWriter(file *excelize.File) (*Excel, error) {
 	if file == nil {
 		return nil, ErrFileIsNil
@@ -71,7 +80,10 @@ func NewWriter(file *excelize.File) (*Excel, error) {
 	return e, nil
 }
 
-// Marshal writes the container into the Excel file
+// Marshal writes the provided container into the Excel file.
+// The container must be a pointer to a slice of structs, maps, or slices.
+// Optional tags can be provided to customize the marshaling process.
+// It returns an error if the Excel configuration is invalid or if marshaling fails.
 func (e *Excel) Marshal(container any, tags ...map[string]*Tags) error {
 	// validate excel input
 	err := e.validate()
@@ -100,8 +112,8 @@ func (e *Excel) Marshal(container any, tags ...map[string]*Tags) error {
 	return err
 }
 
-// validate validates the Excel configuration
-// It returns an error if :
+// validate validates the Excel configuration.
+// It returns an error if:
 // - the file is nil
 // - the reader is not valid
 // - the writer is not valid
