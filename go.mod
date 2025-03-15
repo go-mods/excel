@@ -1,8 +1,6 @@
 module github.com/go-mods/excel
 
-go 1.23.0
-
-toolchain go1.24.0
+go 1.24
 
 require (
 	github.com/go-mods/convert v0.5.0

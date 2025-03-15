@@ -151,3 +151,8 @@ coverage.*
 
 # todo files
 *todo*
+
+# cursor files
+.cursor/
+.cursorrules
+
