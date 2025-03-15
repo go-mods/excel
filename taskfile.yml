@@ -1,7 +1,12 @@
-# Use Task to define tasks and run them locally or in CI
-# For more information about Task, see https://taskfile.dev/#/usage?id=usage
+# Taskfile.yml - Main configuration file for Task
+# Task is an alternative task runner to Make, written in Go
+# Complete documentation: https://taskfile.dev
 version: '3'
 
-# Import tasks from other files
+# Import subtasks from other files
+# This allows better organization and modularity of the code
 includes:
+  # Tasks related to Go (compilation, tests, linting, etc.)
   go: ./.task/go.taskfile.yml
+  # Tasks related to development tools
+  tools: ./.task/tools.taskfile.yml

@@ -1,5 +1,11 @@
-# Use Task to define tasks and run them locally or in CI
-# For more information about Task, see https://taskfile.dev/#/usage?id=usage
+# Taskfile for Go development tasks management
+# Documentation: https://taskfile.dev
+#
+# Main features:
+# - Compilation and testing
+# - Linting and security checks
+# - Code formatting
+# - Dependency management
 version: '3'
 
 
@@ -7,84 +13,88 @@ version: '3'
 tasks:
 
   default:
-    desc: "Run the default go tasks"
+    desc: "Executes the complete code validation sequence: cleaning, generation, verification, formatting, tests and security"
     cmds:
-      - task: clean
-      - task: generate
-      - task: fmt
-      - task: vet
-      - task: tidy
-      - task: test
-      - task: lint
-      - task: gosec
+      - task: clean       # Initial cleanup
+      - task: generate    # Generates code that might depend on external packages
+      - task: fmt         # Format generated and existing code
+      - task: vet         # Check for errors
+      - task: tidy        # Ensure dependencies are correct
+      - task: lint        # Deep analysis
+      - task: test        # Run tests
+      - task: gosec       # Check security
 
   clean:
-    desc: "Clean the go binary"
+    desc: "Cleans the development environment (binaries, coverage files, temporary files)"
     cmds:
       - echo "Cleaning..."
       - rm -f coverage.*
+      - go clean
     silent: true
 
   generate:
-    desc: "Generate the go code"
+    desc: "Generates Go code (mock, protobuf, etc.) via go generate for all packages"
     cmds:
       - echo "Generating..."
       - go generate ./...
     silent: true
 
+  fmt:
+    desc: "Formats Go code according to standard gofmt formatting conventions"
+    cmds:
+      - echo "Formatting..."
+      - go fmt ./...
+      - goimports -w .
+      - editorconfig-checker
+    silent: true
+
   vet:
-    desc: "Vet the go code"
+    desc: "Static analysis of Go code to detect common errors and potential problems"
     cmds:
       - echo "Vetting..."
       - go vet ./...
     silent: true
 
-  fmt:
-    desc: "Format the go code"
+  tidy:
+    desc: "Cleans and updates go.mod and go.sum files to manage dependencies"
     cmds:
-      - echo "Formatting..."
-      - go fmt ./...
+      - echo "Tidying..."
+      - go mod tidy
     silent: true
 
   lint:
-    desc: "Lint the go code"
+    desc: "Checks code quality with golangci-lint by applying multiple linters"
     cmds:
       - echo "Linting..."
       - golangci-lint run ./...
     silent: true
 
   test:
-    desc: "Test the go code"
+    desc: "Runs all project unit tests"
     cmds:
       - echo "Testing..."
       - go test ./...
     silent: true
 
   test-coverage:
-    desc: "Test the go code with coverage"
+    desc: "Runs tests with coverage report generation (.out and .html formats)"
     cmds:
       - echo "Generating test coverage..."
       - go test -v ./... -covermode=atomic -coverpkg=./... -coverprofile coverage.out
       - go tool cover -html coverage.out -o coverage.html
     silent: true
 
-  tidy:
-    desc: "Tidy the go code"
-    cmds:
-      - echo "Tidying..."
-      - go mod tidy
-    silent: true
-
   gosec:
-    desc: "Run gosec on the go code"
+    desc: "Security analysis of Go code to detect potential vulnerabilities"
     cmds:
       - echo "Running gosec..."
       - gosec ./...
     silent: true
 
   update:
-    desc: "Update the go dependencies"
+    desc: "Updates all project dependencies to their latest compatible versions"
     cmds:
       - echo "Updating dependencies..."
       - go get -u ./...
+      - task: tidy
     silent: true

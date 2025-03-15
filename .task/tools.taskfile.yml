@@ -1,0 +1,95 @@
+# Task configuration file for development tools management
+# Task is used to define and execute tasks locally or in CI
+# For more information: https://taskfile.dev/#/usage?id=usage
+version: '3'
+
+# Task definitions
+tasks:
+
+  # Default task executed if no task is specified
+  default:
+    desc: "Executes default installation tasks"
+    cmds:
+      - task: install-all
+
+  # Main task that installs or updates all tools
+  install-all:
+    desc: "Installs or updates all third-party tools"
+    cmds:
+      - task: install-editorconfig-checker  # EditorConfig rules validation tool
+      - task: install-golangci-lint         # Multi-function Go linter
+      - task: install-gosec                 # Security analyzer for Go
+      - task: install-goimports             # Go imports formatting tool
+      - task: check-versions                # Checks installed versions
+
+  # Installation of editorconfig-checker
+  # Checks code compliance with EditorConfig rules
+  install-editorconfig-checker:
+    desc: "Installs or updates editorconfig-checker"
+    cmds:
+      - |
+        if command -v editorconfig-checker >/dev/null 2>&1; then
+          echo "Updating editorconfig-checker..."
+          go install github.com/editorconfig-checker/editorconfig-checker/v3/cmd/editorconfig-checker@latest
+        else
+          echo "Installing editorconfig-checker..."
+          go install github.com/editorconfig-checker/editorconfig-checker/v3/cmd/editorconfig-checker@latest
+        fi
+    silent: true
+
+  # Installation of goimports
+  # Tool that automatically formats import declarations in Go files
+  install-goimports:
+    desc: "Installs or updates goimports"
+    cmds:
+      - |
+        if command -v goimports >/dev/null 2>&1; then
+          echo "Updating goimports..."
+          go install golang.org/x/tools/cmd/goimports@latest
+        else
+          echo "Installing goimports..."
+          go install golang.org/x/tools/cmd/goimports@latest
+        fi
+    silent: true
+
+  # Installation of golangci-lint
+  # Go linter that integrates many static analysis tools
+  install-golangci-lint:
+    desc: "Installs or updates golangci-lint"
+    cmds:
+      - |
+        if command -v golangci-lint >/dev/null 2>&1; then
+          echo "Updating golangci-lint..."
+          go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+        else
+          echo "Installing golangci-lint..."
+          go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+        fi
+    silent: true
+
+  # Installation of gosec
+  # Security analyzer that looks for vulnerabilities in Go code
+  install-gosec:
+    desc: "Installs or updates gosec"
+    cmds:
+      - |
+        if command -v gosec >/dev/null 2>&1; then
+          echo "Updating gosec..."
+          go install github.com/securego/gosec/v2/cmd/gosec@latest
+        else
+          echo "Installing gosec..."
+          go install github.com/securego/gosec/v2/cmd/gosec@latest
+        fi
+    silent: true
+
+  # Version checking
+  # Displays versions of all installed tools for debugging
+  check-versions:
+    desc: "Checks versions of installed tools"
+    cmds:
+      - go version
+      - task --version
+      - golangci-lint --version
+      - gosec --version
+      - editorconfig-checker --version
+    silent: true
