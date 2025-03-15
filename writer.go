@@ -74,6 +74,6 @@ func (w *Writer) newWriter(container any) (IWriter, error) {
 		writer, err := newMapWriter(w, v)
 		return writer, err
 	default:
-		return nil, ErrNoReaderFound
+		return nil, ErrNoWriterFound
 	}
 }
