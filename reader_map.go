@@ -129,7 +129,7 @@ func (r *mapReader) unmarshallRow(row []string) (reflect.Value, error) {
 		sCell := convert.ToString(cell)
 		value, err := convert.ToValueE(sCell, containerValueType)
 		if err != nil {
-			// try to fins the type
+			// try to find the type
 			t := convert.GetConvertType(sCell)
 			if t != nil {
 				value, err = convert.ToValueE(sCell, t)
