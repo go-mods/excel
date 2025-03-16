@@ -3,8 +3,8 @@ github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/dromara/carbon/v2 v2.5.4 h1:BkftNHVCkEwzv6ZuFiB/R1rLHaw6ufbCVkyLDCf3GeY=
 github.com/dromara/carbon/v2 v2.5.4/go.mod h1:zyPlND2o27sKKkRmdgLbk/qYxkmmH6Z4eE8OoM0w3DM=
-github.com/go-mods/convert v0.5.0 h1:otaXIJ494vLvbTjs7UeRR8lEWsxr3hpRQhz96hZXkJ8=
-github.com/go-mods/convert v0.5.0/go.mod h1:xFGHEQmXmM39z72CGfXZHJG79TgIz83/gymj5EebpQ8=
+github.com/go-mods/convert v0.6.1 h1:9rK0X35nroIYuIKEePEwlQT8jTUqm8TcCTijkZ2ny1U=
+github.com/go-mods/convert v0.6.1/go.mod h1:9NGC2etyWtmQ7gR6w9cg4CCkW/EPpReCLLd1Uow6+6s=
 github.com/go-mods/excelize/v2 v2.0.0-20231116122542-ce766d7021db h1:dOSgA2Fa2cPvTx19dvTSC9QkdDTe/sfFqgvzgoqP7lU=
 github.com/go-mods/excelize/v2 v2.0.0-20231116122542-ce766d7021db/go.mod h1:iwipck2q5caqRjROpapZpVqnlcAxBnE7CuLOJ8oNF/I=
 github.com/go-mods/tags v1.1.3 h1:FpGe1+npy/pIHQX1QyEFM3PIyvErM1L3fSIzkRQSdf8=

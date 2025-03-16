@@ -3,7 +3,7 @@ module github.com/go-mods/excel
 go 1.24
 
 require (
-	github.com/go-mods/convert v0.5.0
+	github.com/go-mods/convert v0.6.1
 	github.com/go-mods/tags v1.1.3
 	github.com/stretchr/testify v1.10.0
 	github.com/xuri/excelize/v2 v2.8.0
