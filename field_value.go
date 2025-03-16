@@ -11,6 +11,8 @@ import (
 
 var timeType = reflect.TypeOf((*time.Time)(nil)).Elem()
 
+const defaultSplitChar = ","
+
 // toValue is called when reading an Excel file to get the value of a field
 func (f *Field) toValue(from string) (value reflect.Value, err error) {
 
@@ -51,7 +53,7 @@ func (f *Field) toValue(from string) (value reflect.Value, err error) {
 			// Validate split character is not empty
 			splitChar := f.GetReadSplit()
 			if splitChar == "" {
-				splitChar = "," // Default split character
+				splitChar = defaultSplitChar
 			}
 
 			values := strings.Split(convert.ToString(from), splitChar)
@@ -186,7 +188,7 @@ func (f *Field) toCellValue(from interface{}) (interface{}, error) {
 		// Validate split character is not empty
 		splitChar := f.GetWriteSplit()
 		if splitChar == "" {
-			splitChar = "," // Default split character
+			splitChar = defaultSplitChar
 		}
 
 		for i := 0; i < slice.Len(); i++ {

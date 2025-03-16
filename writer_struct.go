@@ -237,14 +237,18 @@ func (w *StructWriter) writeRows(slice any) (row int, err error) {
 		}
 
 		// write
-		for j := 0; j < values.NumField(); j++ {
-			value := values.Field(j)
-			f := w.Struct.GetField(j)
+		for _, f := range w.Struct.Fields {
 			if f == nil || f.GetWriteIgnore() {
 				continue
 			}
 
-			if value.Kind() == reflect.Pointer && value.IsNil() {
+			// Get the field value using the container's findFieldByIndex
+			fieldValue, err := w.container.findFieldByIndex(values, f.Index)
+			if err != nil {
+				return 0, fmt.Errorf("excel: failed to find field at index %d: %w", f.Index, err)
+			}
+
+			if fieldValue.Kind() == reflect.Pointer && fieldValue.IsNil() {
 				continue
 			}
 
@@ -253,7 +257,7 @@ func (w *StructWriter) writeRows(slice any) (row int, err error) {
 				return 0, fmt.Errorf("excel: failed to convert coordinates to cell name: %w", err)
 			}
 
-			cellValue, err := f.toCellValue(value.Interface())
+			cellValue, err := f.toCellValue(fieldValue.Interface())
 			if err != nil {
 				return 0, fmt.Errorf("excel: failed to convert value for field '%s': %w", f.Name, err)
 			}
