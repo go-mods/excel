@@ -12,6 +12,7 @@ var (
 	ErrConfigNotValid = errors.New("excel: the configuration is not valid")
 
 	// Sheet errors
+	ErrSheetIsNil     = errors.New("excel: the sheet is nil")
 	ErrSheetNotValid  = errors.New("excel: the sheet name is not valid")
 	ErrSheetNotFound  = errors.New("excel: the sheet is not found")
 	ErrSheetNameEmpty = errors.New("excel: the sheet name is empty")

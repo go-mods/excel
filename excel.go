@@ -6,6 +6,12 @@ import (
 
 // Excel is the main structure that provides functionality for reading from and writing to Excel files.
 // It contains references to the underlying excelize.File, Reader, Writer, and Struct components.
+//
+// Thread Safety:
+// The Excel struct is not thread-safe by default. If multiple goroutines need to access
+// the same Excel instance concurrently, external synchronization must be provided.
+// Each Excel instance should be used by only one goroutine at a time, or proper
+// synchronization mechanisms (like sync.Mutex) should be used to coordinate access.
 type Excel struct {
 	File   *excelize.File
 	Reader *Reader
@@ -17,6 +23,9 @@ type Excel struct {
 // NewReader creates a new Excel reader from an existing excelize.File.
 // It returns an error if the file is nil.
 // The returned Excel instance can be used to unmarshal Excel data into Go structures.
+//
+// Note: The returned Excel instance is not thread-safe. If it needs to be used
+// concurrently by multiple goroutines, external synchronization is required.
 func NewReader(file *excelize.File) (*Excel, error) {
 	if file == nil {
 		return nil, ErrFileIsNil
@@ -35,6 +44,10 @@ func NewReader(file *excelize.File) (*Excel, error) {
 // The container must be a pointer to a slice of structs, maps, or slices.
 // Optional tags can be provided to customize the unmarshaling process.
 // It returns an error if the Excel configuration is invalid or if unmarshaling fails.
+//
+// Thread Safety:
+// This method is not thread-safe. If multiple goroutines need to call Unmarshal
+// on the same Excel instance concurrently, external synchronization must be provided.
 func (e *Excel) Unmarshal(container any, tags ...map[string]*Tags) error {
 	// validate excel input
 	err := e.validate()
@@ -66,6 +79,9 @@ func (e *Excel) Unmarshal(container any, tags ...map[string]*Tags) error {
 // NewWriter creates a new Excel writer from an existing excelize.File.
 // It returns an error if the file is nil.
 // The returned Excel instance can be used to marshal Go structures into Excel data.
+//
+// Note: The returned Excel instance is not thread-safe. If it needs to be used
+// concurrently by multiple goroutines, external synchronization is required.
 func NewWriter(file *excelize.File) (*Excel, error) {
 	if file == nil {
 		return nil, ErrFileIsNil
@@ -77,6 +93,12 @@ func NewWriter(file *excelize.File) (*Excel, error) {
 		File:   file,
 		Writer: w,
 	}
+	// The default excelize sheet is assigned to the writer
+	e.SetSheet(e.GetActiveSheet())
+
+	// Set the default axis to A1
+	e.SetAxis("A1")
+
 	return e, nil
 }
 
@@ -84,6 +106,10 @@ func NewWriter(file *excelize.File) (*Excel, error) {
 // The container must be a pointer to a slice of structs, maps, or slices.
 // Optional tags can be provided to customize the marshaling process.
 // It returns an error if the Excel configuration is invalid or if marshaling fails.
+//
+// Thread Safety:
+// This method is not thread-safe. If multiple goroutines need to call Marshal
+// on the same Excel instance concurrently, external synchronization must be provided.
 func (e *Excel) Marshal(container any, tags ...map[string]*Tags) error {
 	// validate excel input
 	err := e.validate()

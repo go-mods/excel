@@ -86,6 +86,26 @@ func (e *Excel) SetActiveSheet(sheet *Sheet) {
 	e.SetSheet(sheet)
 }
 
+// SetActiveSheetName sets the name of the active sheet
+func (e *Excel) SetActiveSheetName(name string) error {
+	if e.File == nil {
+		return ErrFileIsNil
+	}
+	// Get the active sheet
+	sheet := e.GetActiveSheet()
+	if sheet == nil {
+		return ErrSheetIsNil
+	}
+	// Set the name of the active sheet
+	err := e.File.SetSheetName(sheet.Name, name)
+	if err != nil {
+		return err
+	}
+	// Set the current sheet to the new name
+	e.SetSheetFromName(name)
+	return nil
+}
+
 // SetSheet sets the sheet to be used by the reader or writer
 func (e *Excel) SetSheet(sheet *Sheet) {
 	if e.Reader != nil {
