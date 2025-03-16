@@ -37,6 +37,13 @@ func NewReader(file *excelize.File) (*Excel, error) {
 		File:   file,
 		Reader: r,
 	}
+
+	// The default excelize sheet is assigned to the writer
+	e.SetSheet(e.GetActiveSheet())
+
+	// Set the default axis to A1
+	e.SetAxis("A1")
+
 	return e, nil
 }
 
@@ -93,6 +100,7 @@ func NewWriter(file *excelize.File) (*Excel, error) {
 		File:   file,
 		Writer: w,
 	}
+
 	// The default excelize sheet is assigned to the writer
 	e.SetSheet(e.GetActiveSheet())
 
