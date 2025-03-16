@@ -56,52 +56,40 @@ func (c *Container) assign(container reflect.Value, index int, value reflect.Val
 
 	switch kind {
 	case reflect.Struct:
+		target := container
 		if c.Pointer {
-			elem := container.Elem()
-			if index < 0 || index >= elem.NumField() {
-				return fmt.Errorf("excel: field index %d out of bounds for struct with %d fields", index, elem.NumField())
-			}
-			field := elem.Field(index)
-			if !field.CanSet() {
-				return fmt.Errorf("excel: cannot set field at index %d (possibly unexported)", index)
-			}
-			field.Set(value)
-		} else {
-			if index < 0 || index >= container.NumField() {
-				return fmt.Errorf("excel: field index %d out of bounds for struct with %d fields", index, container.NumField())
-			}
-			field := container.Field(index)
-			if !field.CanSet() {
-				return fmt.Errorf("excel: cannot set field at index %d (possibly unexported)", index)
-			}
-			field.Set(value)
+			target = container.Elem()
 		}
+
+		if index < 0 || index >= target.NumField() {
+			return fmt.Errorf("excel: field index %d out of bounds for struct with %d fields", index, target.NumField())
+		}
+
+		field := target.Field(index)
+		if !field.CanSet() {
+			return fmt.Errorf("excel: cannot set field at index %d (possibly unexported)", index)
+		}
+		field.Set(value)
 	case reflect.Slice:
+		target := container
 		if c.Pointer {
-			elem := container.Elem()
-			if index < 0 || index >= elem.Len() {
-				return fmt.Errorf("excel: slice index %d out of bounds for slice with length %d", index, elem.Len())
-			}
-			elem.Index(index).Set(value)
-		} else {
-			if index < 0 || index >= container.Len() {
-				return fmt.Errorf("excel: slice index %d out of bounds for slice with length %d", index, container.Len())
-			}
-			container.Index(index).Set(value)
+			target = container.Elem()
 		}
+
+		if index < 0 || index >= target.Len() {
+			return fmt.Errorf("excel: slice index %d out of bounds for slice with length %d", index, target.Len())
+		}
+		target.Index(index).Set(value)
 	case reflect.Map:
+		target := container
 		if c.Pointer {
-			elem := container.Elem()
-			if value.NumField() < 2 {
-				return fmt.Errorf("excel: map value must have at least 2 fields (key and value)")
-			}
-			elem.SetMapIndex(value.Field(0), value.Field(1))
-		} else {
-			if value.NumField() < 2 {
-				return fmt.Errorf("excel: map value must have at least 2 fields (key and value)")
-			}
-			container.SetMapIndex(value.Field(0), value.Field(1))
+			target = container.Elem()
 		}
+
+		if value.NumField() < 2 {
+			return fmt.Errorf("excel: map value must have at least 2 fields (key and value)")
+		}
+		target.SetMapIndex(value.Field(0), value.Field(1))
 	default:
 		return fmt.Errorf("excel: unsupported container kind: %v", kind)
 	}
