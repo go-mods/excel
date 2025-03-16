@@ -56,7 +56,7 @@ func writeExample() {
 	}
 
 	// Set the axis
-	excelWriter.SetAxis("A1")
+	excelWriter.SetAxis("D8")
 
 	// Create sample data
 	employees := []Employee{
@@ -119,7 +119,7 @@ func readExample() {
 
 	// Set the sheet to read from
 	excelReader.SetSheetFromName("Employees")
-	excelReader.SetAxis("A1")
+	excelReader.SetAxis("D8")
 
 	// Create a container for the data
 	var employees []Employee

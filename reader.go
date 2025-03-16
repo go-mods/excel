@@ -53,6 +53,39 @@ func (r *Reader) validate() error {
 	return nil
 }
 
+// getRows returns the rows from the sheet starting from the defined axis
+// If the axis is valid, it will return rows starting from the axis row
+// Otherwise, it will return all rows from the sheet
+// It also returns the starting column index if an axis is defined
+func (r *Reader) getRows() (*excelize.Rows, int, error) {
+	rows, err := r.file.Rows(r.Sheet.Name)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	// If axis is valid, skip rows until we reach the axis row
+	// and set the starting column index
+	if r.isAxisValid() {
+		// Get coordinates from the axis
+		startCol, startRow, err := excelize.CellNameToCoordinates(r.Axis.Axis)
+		if err != nil {
+			return nil, 0, err
+		}
+
+		// Skip rows until we reach the axis row
+		if startRow > 1 {
+			rowIndex := 1
+			for rows.Next() && rowIndex < startRow-1 {
+				rowIndex++
+			}
+		}
+
+		return rows, startCol - 1, nil
+	}
+
+	return rows, 0, nil
+}
+
 // newReader creates the appropriate reader implementation based on the container type.
 // It analyzes the container's type and returns a reader that can handle that specific type.
 // Supported container types are slices of structs, slices of slices, and slices of maps.

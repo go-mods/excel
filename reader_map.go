@@ -39,7 +39,7 @@ func newMapReader(reader *Reader, value reflect.Value) (*mapReader, error) {
 
 func (r *mapReader) Unmarshall() (*ReaderResult, error) {
 	// get excel rows
-	rows, err := r.Reader.file.Rows(r.Reader.Sheet.Name)
+	rows, startCol, err := r.Reader.getRows()
 	if err != nil {
 		return nil, err
 	}
@@ -59,6 +59,15 @@ func (r *mapReader) Unmarshall() (*ReaderResult, error) {
 		}
 		if row == nil {
 			break
+		}
+
+		// Apply column offset if needed
+		if startCol > 0 && len(row) > startCol {
+			row = row[startCol:]
+		} else if startCol > 0 && len(row) <= startCol {
+			// Skip this row if it doesn't have enough columns
+			rowIndex++
+			continue
 		}
 
 		// Title row
