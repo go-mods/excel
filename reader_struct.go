@@ -208,7 +208,7 @@ func (r *StructReader) unmarshallRow(row []string) (value reflect.Value, err err
 			var fieldValue reflect.Value
 
 			if len(row) >= fieldConfig.ReadTags.index+1 {
-				fieldValue, err = fieldConfig.toValue(row[fieldConfig.ReadTags.index])
+				fieldValue, err = fieldConfig.convertToValue(row[fieldConfig.ReadTags.index])
 				if err != nil {
 					// Log the error but continue with other fields
 					// This allows partial data to be read even if some fields fail

@@ -1,17 +1,17 @@
 package excel
 
 const (
-	mainKey = "excel"
-	inKey   = mainKey + "-in"
-	outKey  = mainKey + "-out"
+	TagKeyMain = "excel"
+	TagKeyIn   = TagKeyMain + "-in"
+	TagKeyOut  = TagKeyMain + "-out"
 
-	columnTag   = "column"
-	defaultTag  = "default"
-	formatTag   = "format"
-	encodingTag = "encoding"
-	splitTag    = "split"
-	requiredTag = "required"
-	ignoreTag   = "-"
+	TagColumn   = "column"
+	TagDefault  = "default"
+	TagFormat   = "format"
+	TagEncoding = "encoding"
+	TagSplit    = "split"
+	TagRequired = "required"
+	TagIgnore   = "-"
 )
 
 // Tags is used to store the mainTags parameters of a field.
@@ -21,7 +21,7 @@ const (
 //
 // Example:
 //
-//	type MyStruct struct {
+//	type Named struct {
 //		Column1 string `excel:"column=MyColumn1"`
 //		Column2 string `excel:"column=MyColumn2;required"`
 //		Column3 string `excel:"column=MyColumn3;default=Hello World"`
@@ -50,13 +50,13 @@ type Tags struct {
 //
 // Example:
 //
-//	type MyStruct struct {
+//	type Named struct {
 //		Column1 string `excel:"column=MyColumn1"`
 //		Column2 string `excel:"column=MyColumn2;required"`
 //		Column3 string `excel:"column=MyColumn3;default=Hello World"`
 //	}
 //
-//	func (s *MyStruct) GetTags() map[string]excel.MainTags {
+//	func (s *Named) GetTags() map[string]excel.MainTags {
 //		return map[string]excel.MainTags{
 //			"Column1": excel.MainTags{column: "MyColumn1"},
 //			"Column2": excel.MainTags{column: "MyColumn2", Required: true},

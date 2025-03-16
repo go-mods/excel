@@ -110,9 +110,9 @@ func collectFields(s *Struct, t reflect.Type, startIndex int, fields Fields, def
 			Index:     startIndex,
 			Type:      f.Type,
 			Name:      f.Name,
-			MainTags:  s.getTags(f, mainKey),
-			ReadTags:  s.getTags(f, inKey),
-			WriteTags: s.getTags(f, outKey),
+			MainTags:  s.getTags(f, TagKeyMain),
+			ReadTags:  s.getTags(f, TagKeyIn),
+			WriteTags: s.getTags(f, TagKeyOut),
 		}
 
 		// Overwrite default tags

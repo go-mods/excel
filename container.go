@@ -109,7 +109,8 @@ func (c *Container) assign(container reflect.Value, index int, value reflect.Val
 // This function handles embedded structures
 func (c *Container) findFieldByIndex(container reflect.Value, index int) (reflect.Value, error) {
 	target := container
-	if c.Pointer {
+
+	if container.Kind() == reflect.Pointer {
 		target = container.Elem()
 	}
 
@@ -118,14 +119,14 @@ func (c *Container) findFieldByIndex(container reflect.Value, index int) (reflec
 }
 
 // findFieldRecursive recursively traverses the structure to find the field corresponding to the index
-func (c *Container) findFieldRecursive(v reflect.Value, targetIndex, currentIndex int) (reflect.Value, error) {
-	if v.Kind() != reflect.Struct {
-		return reflect.Value{}, fmt.Errorf("excel: expected struct, got %v", v.Kind())
+func (c *Container) findFieldRecursive(structValue reflect.Value, targetIndex, currentFieldIndex int) (reflect.Value, error) {
+	if structValue.Kind() != reflect.Struct {
+		return reflect.Value{}, fmt.Errorf("excel: expected struct, got %structValue", structValue.Kind())
 	}
 
-	for i := 0; i < v.NumField(); i++ {
-		field := v.Field(i)
-		fieldType := v.Type().Field(i)
+	for i := 0; i < structValue.NumField(); i++ {
+		field := structValue.Field(i)
+		fieldType := structValue.Type().Field(i)
 
 		// If it's an embedded structure, traverse its fields
 		if fieldType.Anonymous {
@@ -139,38 +140,38 @@ func (c *Container) findFieldRecursive(v reflect.Value, targetIndex, currentInde
 
 			if field.Kind() == reflect.Struct {
 				// Recursively traverse the embedded structure
-				result, err := c.findFieldRecursive(field, targetIndex, currentIndex)
+				result, err := c.findFieldRecursive(field, targetIndex, currentFieldIndex)
 				if err == nil {
 					return result, nil
 				}
 
 				// If the field was not found, continue with the updated counter
-				currentIndex += c.countFields(field)
+				currentFieldIndex += c.countFields(field)
 				continue
 			}
 		}
 
 		// If we found the target index
-		if currentIndex == targetIndex {
+		if currentFieldIndex == targetIndex {
 			return field, nil
 		}
 
-		currentIndex++
+		currentFieldIndex++
 	}
 
 	return reflect.Value{}, fmt.Errorf("excel: field index %d not found", targetIndex)
 }
 
 // countFields counts the number of fields in a structure, including fields of embedded structures
-func (c *Container) countFields(v reflect.Value) int {
-	if v.Kind() != reflect.Struct {
+func (c *Container) countFields(structValue reflect.Value) int {
+	if structValue.Kind() != reflect.Struct {
 		return 0
 	}
 
 	count := 0
-	for i := 0; i < v.NumField(); i++ {
-		field := v.Field(i)
-		fieldType := v.Type().Field(i)
+	for i := 0; i < structValue.NumField(); i++ {
+		field := structValue.Field(i)
+		fieldType := structValue.Type().Field(i)
 
 		// If it's an embedded structure, count its fields
 		if fieldType.Anonymous {

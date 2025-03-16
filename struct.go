@@ -36,7 +36,7 @@ func (s *Struct) getTags(field reflect.StructField, key string) (t *Tags) {
 		t = s.parseTag(ts)
 	} else {
 		t = newTag()
-		if key == mainKey {
+		if key == TagKeyMain {
 			t.Column = field.Name
 		}
 	}
@@ -47,7 +47,7 @@ func (s *Struct) getTags(field reflect.StructField, key string) (t *Tags) {
 func (s *Struct) parseTag(tag *tags.Tag) (t *Tags) {
 	t = newTag()
 
-	if tag.Value == ignoreTag {
+	if tag.Value == TagIgnore {
 		t.Ignore = true
 		return
 	}
@@ -56,24 +56,24 @@ func (s *Struct) parseTag(tag *tags.Tag) (t *Tags) {
 		t.Column = tag.Name
 	}
 
-	if o := tag.GetOption(columnTag); o != nil {
+	if o := tag.GetOption(TagColumn); o != nil {
 		t.Column = convert.ToString(o.Value)
 	}
-	if o := tag.GetOption(defaultTag); o != nil {
+	if o := tag.GetOption(TagDefault); o != nil {
 		t.Default = o.Value
 	}
-	if o := tag.GetOption(formatTag); o != nil {
+	if o := tag.GetOption(TagFormat); o != nil {
 		t.Format = convert.ToString(o.Value)
 	}
-	if o := tag.GetOption(encodingTag); o != nil {
+	if o := tag.GetOption(TagEncoding); o != nil {
 		t.Encoding = convert.ToString(o.Value)
 	}
-	if o := tag.GetOption(splitTag); o != nil {
+	if o := tag.GetOption(TagSplit); o != nil {
 		if o.Value != nil {
 			t.Split = convert.ToString(o.Value)
 		}
 	}
-	if o := tag.GetOption(requiredTag); o != nil {
+	if o := tag.GetOption(TagRequired); o != nil {
 		t.Required = true
 	}
 

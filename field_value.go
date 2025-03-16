@@ -13,8 +13,8 @@ var timeType = reflect.TypeOf((*time.Time)(nil)).Elem()
 
 const defaultSplitChar = ","
 
-// toValue is called when reading an Excel file to get the value of a field
-func (f *Field) toValue(from string) (value reflect.Value, err error) {
+// convertToValue is called when reading an Excel file to get the value of a field
+func (f *Field) convertToValue(from string) (value reflect.Value, err error) {
 
 	// Validate field type is not nil
 	if f.Type == nil {

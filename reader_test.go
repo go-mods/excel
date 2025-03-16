@@ -9,11 +9,24 @@ import (
 	"github.com/xuri/excelize/v2"
 )
 
-type MyStruct struct {
-	ID   int
-	Name string
+// Named represents a structure with ID and Name fields
+// The ID field is mapped to "Id" column for both import and export
+// The Name field has different default values:
+// - "error" for general excel tag
+// - "anonymous" when importing
+// - "not_used" when exporting
+type Named struct {
+	ID   int    `excel:"Id" excel-in:"Id" excel-out:"Id"`
+	Name string `excel:"Name,default:error" excel-in:"default:anonymous" excel-out:"default:not_used"`
 }
 
+// User represents a structure with various field types and excel tags:
+// - Id: mapped to different column names for import/export
+// - Name: has different default values for import/export
+// - Ignored: excluded from excel processing
+// - EncodedName: JSON encoded/decoded
+// - Created: formatted date field
+// - AnArray: array split by different delimiters for import/export
 type User struct {
 	Id          int       `excel:"Id" excel-in:"ID" excel-out:"id"`
 	Name        string    `excel:"Name,default:error" excel-in:"default:anonymous" excel-out:"default:not_used"`
@@ -23,34 +36,55 @@ type User struct {
 	AnArray     []int     `excel:"array,split:;" excel-out:"split:|"`
 }
 
+// NamedUser represents a structure that embeds Named and adds additional fields:
+// - Ignored: excluded from excel processing
+// - EncodedName: JSON encoded/decoded name field
+// - Created: formatted date field
+// - AnArray: array split by | delimiter
+type NamedUser struct {
+	Named
+	Ignored     string    `excel:"-"`
+	EncodedName Encoded   `excel:"Encoded_Name,encoding:json"`
+	Created     time.Time `excel:"created,format:d/m/Y"`
+	AnArray     []int     `excel:"array,split:|"`
+}
+
+// users represents a slice of User structs used for testing
 var users []User
 
+// Encoded represents a structure that can be encoded/decoded to/from JSON
+// It contains a Name field that is tagged with json:"name"
 type Encoded struct {
 	Name string `json:"name"`
 }
 
+// DateTime wraps time.Time to provide custom marshalling/unmarshalling
 type DateTime struct {
 	time.Time
 }
 
+// Marshall formats the DateTime as YYYYMMDD string
 func (date *DateTime) Marshall() (interface{}, error) {
 	return date.Time.Format("20060201"), nil
 }
 
+// Unmarshall parses a YYYYMMDD string into the DateTime
 func (date *DateTime) Unmarshall(s string) (err error) {
 	date.Time, err = time.Parse("20060201", s)
 	return err
 }
 
-type MyStructSlice []MyStruct
-type MyStringSlice [][]string
-type MyIntSlice [][]int
-type MyAnySlice [][]any
-type MyMapString []map[string]string
-type MyMapInt []map[string]int
-type MyMapAny []map[string]any
+type StructSlice []Named
+type StringMatrix [][]string
+type IntMatrix [][]int
+type AnyMatrix [][]any
+type StringMap []map[string]string
+type IntMap []map[string]int
+type AnyMap []map[string]any
 
-func TestReader_newReader(t *testing.T) {
+// TestNewReader verifies that the correct reader type is created based on the input data type.
+// It tests reader creation for structures, slices, and maps, both for pointers and direct values.
+func TestNewReader(t *testing.T) {
 
 	r := &Reader{}
 
@@ -62,79 +96,79 @@ func TestReader_newReader(t *testing.T) {
 	}{
 		{
 			name:    "struct reader",
-			args:    MyStructSlice{},
+			args:    StructSlice{},
 			want:    &StructReader{},
 			wantErr: true,
 		},
 		{
 			name: "struct reader pointer",
-			args: &MyStructSlice{},
+			args: &StructSlice{},
 			want: &StructReader{},
 		},
 		{
 			name:    "slice reader (string)",
-			args:    MyStringSlice{},
+			args:    StringMatrix{},
 			want:    &SliceReader{},
 			wantErr: true,
 		},
 		{
 			name: "slice reader pointer (string)",
-			args: &MyStringSlice{},
+			args: &StringMatrix{},
 			want: &SliceReader{},
 		},
 		{
 			name:    "slice reader (int)",
-			args:    MyIntSlice{},
+			args:    IntMatrix{},
 			want:    &SliceReader{},
 			wantErr: true,
 		},
 		{
 			name: "slice reader pointer (int)",
-			args: &MyIntSlice{},
+			args: &IntMatrix{},
 			want: &SliceReader{},
 		},
 		{
 			name:    "slice reader (any)",
-			args:    MyAnySlice{},
+			args:    AnyMatrix{},
 			want:    &SliceReader{},
 			wantErr: true,
 		},
 		{
 			name: "slice reader pointer (any)",
-			args: &MyAnySlice{},
+			args: &AnyMatrix{},
 			want: &SliceReader{},
 		},
 		{
 			name:    "map reader (string)",
-			args:    MyMapString{},
+			args:    StringMap{},
 			want:    &mapReader{},
 			wantErr: true,
 		},
 		{
 			name: "map reader pointer (string)",
-			args: &MyMapString{},
+			args: &StringMap{},
 			want: &mapReader{},
 		},
 		{
 			name:    "map reader (int)",
-			args:    MyMapInt{},
+			args:    IntMap{},
 			want:    &mapReader{},
 			wantErr: true,
 		},
 		{
 			name: "map reader pointer (int)",
-			args: &MyMapInt{},
+			args: &IntMap{},
 			want: &mapReader{},
 		},
 		{
 			name:    "map reader (any)",
-			args:    MyMapAny{},
+			args:    AnyMap{},
 			want:    &mapReader{},
 			wantErr: true,
 		},
 		{
 			name: "map reader pointer (any)",
-			args: &MyMapAny{},
+			args: &AnyMap{},
 			want: &mapReader{},
 		},
 	}
@@ -158,7 +192,12 @@ func TestReader_newReader(t *testing.T) {
 	}
 }
 
-func TestActiveFieldTags_ColumnName(t *testing.T) {
+// TestExcelColumnNameMapping verifies that column names are correctly mapped between Excel and struct.
+// It tests:
+// - Reading column headers
+// - Mapping to struct fields
+// - Writing back to Excel with correct headers
+func TestExcelColumnNameMapping(t *testing.T) {
 
 	inFile := excelize.NewFile()
 	_ = inFile.SetCellValue(inFile.GetSheetName(inFile.GetActiveSheetIndex()), "A1", "ID")
@@ -172,11 +211,11 @@ func TestActiveFieldTags_ColumnName(t *testing.T) {
 	_ = inExcel.Unmarshal(&users)
 
 	if len(users) != 1 {
-		t.Error("Unmarshal() error")
+		t.Errorf("Unmarshal() failed: expected users length to be 1, got %d", len(users))
 		return
 	}
 	if users[0].Id != 1 {
-		t.Error("Unmarshal() error")
+		t.Errorf("Unmarshal() failed: expected Id to be 1, got %d", users[0].Id)
 		return
 	}
 
@@ -205,7 +244,12 @@ func TestActiveFieldTags_ColumnName(t *testing.T) {
 	}
 }
 
-func TestActiveFieldTags_DefaultValue(t *testing.T) {
+// TestDefaultValueHandling verifies that default values are correctly applied during reading/writing.
+// It tests:
+// - Empty cell handling
+// - Default value application
+// - Value persistence during read/write cycles
+func TestDefaultValueHandling(t *testing.T) {
 
 	inFile := excelize.NewFile()
 	_ = inFile.SetCellValue(inFile.GetSheetName(inFile.GetActiveSheetIndex()), "A1", "ID")
@@ -246,7 +290,12 @@ func TestActiveFieldTags_DefaultValue(t *testing.T) {
 	}
 }
 
-func TestActiveFieldTags_Ignored(t *testing.T) {
+// TestIgnoredFieldHandling verifies that fields marked as ignored are properly handled.
+// It tests:
+// - Ignored field exclusion
+// - Data integrity for non-ignored fields
+// - JSON encoding of remaining fields
+func TestIgnoredFieldHandling(t *testing.T) {
 
 	inFile := excelize.NewFile()
 	_ = inFile.SetCellValue(inFile.GetSheetName(inFile.GetActiveSheetIndex()), "A1", "ID")
@@ -289,7 +338,12 @@ func TestActiveFieldTags_Ignored(t *testing.T) {
 	}
 }
 
-func TestActiveFieldTags_Encoding(t *testing.T) {
+// TestJSONEncoding verifies JSON encoding/decoding of fields.
+// It tests:
+// - JSON string parsing
+// - Struct field mapping
+// - JSON serialization
+func TestJSONEncoding(t *testing.T) {
 
 	inFile := excelize.NewFile()
 	_ = inFile.SetCellValue(inFile.GetSheetName(inFile.GetActiveSheetIndex()), "A1", "ID")
@@ -331,7 +385,12 @@ func TestActiveFieldTags_Encoding(t *testing.T) {
 	}
 }
 
-func TestActiveFieldTags_Format(t *testing.T) {
+// TestDateFormatting verifies date formatting during reading/writing.
+// It tests:
+// - Date string parsing
+// - Time.Time conversion
+// - Date format output
+func TestDateFormatting(t *testing.T) {
 
 	inFile := excelize.NewFile()
 	_ = inFile.SetCellValue(inFile.GetSheetName(inFile.GetActiveSheetIndex()), "A1", "ID")
@@ -381,7 +440,12 @@ func TestActiveFieldTags_Format(t *testing.T) {
 	}
 }
 
-func TestActiveFieldTags_Split(t *testing.T) {
+// TestArraySplitting verifies array splitting and joining during reading/writing.
+// It tests:
+// - Array string splitting
+// - Type conversion
+// - Array joining with delimiters
+func TestArraySplitting(t *testing.T) {
 
 	inFile := excelize.NewFile()
 	_ = inFile.SetCellValue(inFile.GetSheetName(inFile.GetActiveSheetIndex()), "A1", "ID")
@@ -435,7 +499,12 @@ func TestActiveFieldTags_Split(t *testing.T) {
 	}
 }
 
-func TestActiveFieldTags_Required(t *testing.T) {
+// TestRequiredFields verifies that required fields are properly validated.
+// It tests:
+// - Required field presence
+// - Error handling for missing fields
+// - Validation process
+func TestRequiredFields(t *testing.T) {
 
 	type SimpleUser struct {
 		Id   int    `excel:"Id,required"`
@@ -460,7 +529,12 @@ func TestActiveFieldTags_Required(t *testing.T) {
 	}
 }
 
-func TestConverter(t *testing.T) {
+// TestCustomTypeConverter verifies custom type conversion functionality.
+// It tests:
+// - Custom type marshalling
+// - Custom type unmarshalling
+// - Data integrity through conversion
+func TestCustomTypeConverter(t *testing.T) {
 
 	type SimpleUser struct {
 		Id       int       `excel:"Id"`
@@ -528,7 +602,12 @@ func TestConverter(t *testing.T) {
 	}
 }
 
-func TestSliceRead_string(t *testing.T) {
+// TestStringMatrixRead verifies reading a string matrix from Excel.
+// It tests:
+// - Matrix structure reading
+// - String value handling
+// - Dimensional accuracy
+func TestStringMatrixRead(t *testing.T) {
 
 	file := excelize.NewFile()
 	_ = file.SetCellValue(file.GetSheetName(file.GetActiveSheetIndex()), "A1", "ID")
@@ -541,7 +620,7 @@ func TestSliceRead_string(t *testing.T) {
 	xl.SetSheet(xl.GetActiveSheet())
 	xl.SetAxis("A1")
 
-	var stringSlice MyStringSlice
+	var stringSlice StringMatrix
 	err := xl.Unmarshal(&stringSlice)
 	if err != nil {
 		t.Error(err)
@@ -554,7 +633,12 @@ func TestSliceRead_string(t *testing.T) {
 	assert.Equal(t, stringSlice[1][1], "John Doe", "they should be equal")
 }
 
-func TestSliceRead_int(t *testing.T) {
+// TestIntMatrixRead verifies reading a matrix of integers from Excel.
+// It tests:
+// - Integer parsing
+// - Matrix structure
+// - Value conversion accuracy
+func TestIntMatrixRead(t *testing.T) {
 
 	file := excelize.NewFile()
 	_ = file.SetCellValue(file.GetSheetName(file.GetActiveSheetIndex()), "A1", 1)
@@ -567,7 +651,7 @@ func TestSliceRead_int(t *testing.T) {
 	xl.SetSheet(xl.GetActiveSheet())
 	xl.SetAxis("A1")
 
-	var intSlice MyIntSlice
+	var intSlice IntMatrix
 	err := xl.Unmarshal(&intSlice)
 	if err != nil {
 		t.Error(err)
@@ -580,7 +664,12 @@ func TestSliceRead_int(t *testing.T) {
 	assert.Equal(t, intSlice[1][1], 4, "they should be equal")
 }
 
-func TestSliceRead_any(t *testing.T) {
+// TestAnyMatrixRead verifies reading a matrix of mixed types from Excel.
+// It tests:
+// - Mixed type handling
+// - Type inference
+// - Matrix structure preservation
+func TestAnyMatrixRead(t *testing.T) {
 
 	file := excelize.NewFile()
 	_ = file.SetCellValue(file.GetSheetName(file.GetActiveSheetIndex()), "A1", "ID")
@@ -593,7 +682,7 @@ func TestSliceRead_any(t *testing.T) {
 	xl.SetSheet(xl.GetActiveSheet())
 	xl.SetAxis("A1")
 
-	var anySlice MyAnySlice
+	var anySlice AnyMatrix
 	err := xl.Unmarshal(&anySlice)
 	if err != nil {
 		t.Error(err)
@@ -609,7 +698,12 @@ func TestSliceRead_any(t *testing.T) {
 	assert.Equal(t, xl.Reader.Result.Columns, 2, "they should be equal")
 }
 
-func TestMapRead_string(t *testing.T) {
+// TestStringMapRead verifies reading a map of strings from Excel.
+// It tests:
+// - Header row processing
+// - Map structure creation
+// - String value mapping
+func TestStringMapRead(t *testing.T) {
 
 	file := excelize.NewFile()
 	_ = file.SetCellValue(file.GetSheetName(file.GetActiveSheetIndex()), "A1", "ID")
@@ -624,7 +718,7 @@ func TestMapRead_string(t *testing.T) {
 	xl.SetSheet(xl.GetActiveSheet())
 	xl.SetAxis("A1")
 
-	var mapString MyMapString
+	var mapString StringMap
 	err := xl.Unmarshal(&mapString)
 	if err != nil {
 		t.Error(err)
@@ -640,7 +734,12 @@ func TestMapRead_string(t *testing.T) {
 	assert.Equal(t, xl.Reader.Result.Columns, 2, "they should be equal")
 }
 
-func TestMapRead_int(t *testing.T) {
+// TestIntMapRead verifies reading a map of integers from Excel.
+// It tests:
+// - Header processing
+// - Integer parsing
+// - Map structure integrity
+func TestIntMapRead(t *testing.T) {
 
 	file := excelize.NewFile()
 	_ = file.SetCellValue(file.GetSheetName(file.GetActiveSheetIndex()), "A1", "ID1")
@@ -655,7 +754,7 @@ func TestMapRead_int(t *testing.T) {
 	xl.SetSheet(xl.GetActiveSheet())
 	xl.SetAxis("A1")
 
-	var mapInt MyMapInt
+	var mapInt IntMap
 	err := xl.Unmarshal(&mapInt)
 	if err != nil {
 		t.Error(err)
@@ -671,7 +770,12 @@ func TestMapRead_int(t *testing.T) {
 	assert.Equal(t, xl.Reader.Result.Columns, 2, "they should be equal")
 }
 
-func TestMapRead_any(t *testing.T) {
+// TestAnyMapRead verifies reading a map of mixed types from Excel.
+// It tests:
+// - Mixed type parsing
+// - Map structure creation
+// - Type inference and conversion
+func TestAnyMapRead(t *testing.T) {
 
 	file := excelize.NewFile()
 	_ = file.SetCellValue(file.GetSheetName(file.GetActiveSheetIndex()), "A1", "ID")
@@ -686,7 +790,7 @@ func TestMapRead_any(t *testing.T) {
 	xl.SetSheet(xl.GetActiveSheet())
 	xl.SetAxis("A1")
 
-	var mapAny MyMapAny
+	var mapAny AnyMap
 	err := xl.Unmarshal(&mapAny)
 	if err != nil {
 		t.Error(err)
@@ -700,4 +804,55 @@ func TestMapRead_any(t *testing.T) {
 
 	assert.Equal(t, xl.Reader.Result.Rows, 3, "they should be equal")
 	assert.Equal(t, xl.Reader.Result.Columns, 2, "they should be equal")
+}
+
+// TestStructNamedUserRead verifies reading a NamedUser struct from Excel.
+// It tests:
+// - Structure field mapping
+// - Complex type handling
+// - Field tag processing
+func TestStructNamedUserRead(t *testing.T) {
+	// Create Excel file for testing
+	inFile := excelize.NewFile()
+
+	// Set column headers
+	_ = inFile.SetCellValue(inFile.GetSheetName(inFile.GetActiveSheetIndex()), "A1", "Id")
+	_ = inFile.SetCellValue(inFile.GetSheetName(inFile.GetActiveSheetIndex()), "B1", "Name")
+	_ = inFile.SetCellValue(inFile.GetSheetName(inFile.GetActiveSheetIndex()), "C1", "Encoded_Name")
+	_ = inFile.SetCellValue(inFile.GetSheetName(inFile.GetActiveSheetIndex()), "D1", "created")
+	_ = inFile.SetCellValue(inFile.GetSheetName(inFile.GetActiveSheetIndex()), "E1", "array")
+
+	// Set values
+	_ = inFile.SetCellValue(inFile.GetSheetName(inFile.GetActiveSheetIndex()), "A2", 1)
+	_ = inFile.SetCellValue(inFile.GetSheetName(inFile.GetActiveSheetIndex()), "B2", "Test User")
+	_ = inFile.SetCellValue(inFile.GetSheetName(inFile.GetActiveSheetIndex()), "C2", "{\"name\":\"encoded name\"}")
+	_ = inFile.SetCellValue(inFile.GetSheetName(inFile.GetActiveSheetIndex()), "D2", "01/01/2023")
+	_ = inFile.SetCellValue(inFile.GetSheetName(inFile.GetActiveSheetIndex()), "E2", "1|2|3")
+
+	defer func() { _ = inFile.Close() }()
+
+	// Create container for users
+	var namedUsers []NamedUser
+
+	// Configure Excel reader
+	inExcel, _ := NewReader(inFile)
+	inExcel.SetSheet(inExcel.GetActiveSheet())
+	inExcel.SetAxis("A1")
+
+	// Deserialize data
+	err := inExcel.Unmarshal(&namedUsers)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	// Verify results
+	assert.Equal(t, 1, len(namedUsers), "Should have one user")
+	assert.Equal(t, 1, namedUsers[0].ID, "ID should be 1")
+	assert.Equal(t, "Test User", namedUsers[0].Name, "Name should be 'Test User'")
+	assert.Equal(t, "encoded name", namedUsers[0].EncodedName.Name, "Encoded name should be 'encoded name'")
+	assert.Equal(t, 3, len(namedUsers[0].AnArray), "Array should contain 3 elements")
+	assert.Equal(t, 1, namedUsers[0].AnArray[0], "First array element should be 1")
+	assert.Equal(t, 2, namedUsers[0].AnArray[1], "Second array element should be 2")
+	assert.Equal(t, 3, namedUsers[0].AnArray[2], "Third array element should be 3")
 }
