@@ -10,9 +10,9 @@ type Field struct {
 	Index int
 	Type  reflect.Type
 
-	MainTags  *Tags // mainTags used by default
-	ReadTags  *Tags // mainTags for reading
-	WriteTags *Tags // mainTags for writing
+	MainTags  *Tags // Tags used by default
+	ReadTags  *Tags // Tags for reading
+	WriteTags *Tags // Tags for writing
 }
 
 // Marshaller can be implemented by any Value that has a Marshal method
@@ -29,9 +29,7 @@ type Unmarshaller interface {
 
 // getFields returns a list of Field from the Struct
 func getFields(s *Struct) Fields {
-
-	fieldsCount := s.Type.NumField()
-	fields := make(Fields, 0, fieldsCount)
+	fields := make(Fields, 0)
 
 	// Check if the Container implement ITags, IReadTags or IWriteTags interface
 	// -------------------------------------------------------------------------
@@ -66,15 +64,50 @@ func getFields(s *Struct) Fields {
 		}
 	}
 
-	// Loop throw each field of the Container to get each field configuration
-	// ----------------------------------------------------------------------
+	// Call the recursive function to collect all fields
+	return collectFields(s, s.Type, 0, fields, defaultTags)
+}
+
+// collectFields recursively traverses all fields, including those of embedded structures
+func collectFields(s *Struct, t reflect.Type, startIndex int, fields Fields, defaultTags struct {
+	mainTags  map[string]*Tags
+	readTags  map[string]*Tags
+	writeTags map[string]*Tags
+}) Fields {
+	fieldsCount := t.NumField()
+
 	for i := 0; i < fieldsCount; i++ {
+		f := t.Field(i)
 
-		f := s.Type.Field(i)
+		// If it's an embedded structure (Anonymous), process its fields
+		if f.Anonymous {
+			fieldType := f.Type
+			if fieldType.Kind() == reflect.Ptr {
+				fieldType = fieldType.Elem()
+			}
 
-		// Get Tags from struct
+			// If it's a structure, process its fields recursively
+			if fieldType.Kind() == reflect.Struct {
+				// Get the list of fields from the structure
+				anonymousFields := collectFields(s, fieldType, startIndex, fields, defaultTags)
+
+				// Add the field to the list
+				for j := 0; j < len(anonymousFields); j++ {
+					field := anonymousFields[j]
+					if field != nil {
+						field.Index = startIndex
+						fields = append(fields, field)
+						startIndex++
+					}
+				}
+
+				continue
+			}
+		}
+
+		// Create the field
 		field := &Field{
-			Index:     i,
+			Index:     startIndex,
 			Type:      f.Type,
 			Name:      f.Name,
 			MainTags:  s.getTags(f, mainKey),
@@ -89,6 +122,7 @@ func getFields(s *Struct) Fields {
 
 		// Add the field to the list
 		fields = append(fields, field)
+		startIndex++
 	}
 
 	return fields

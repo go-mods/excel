@@ -30,7 +30,7 @@ func getStruct(container *Container) *Struct {
 	return s
 }
 
-// getFields get the tags of the struct fields
+// getTags gets the tags of the struct fields
 func (s *Struct) getTags(field reflect.StructField, key string) (t *Tags) {
 	if ts := tags.Lookup(field, key); ts != nil {
 		t = s.parseTag(ts)
@@ -43,7 +43,7 @@ func (s *Struct) getTags(field reflect.StructField, key string) (t *Tags) {
 	return
 }
 
-// parseTag parse the tag and return a Tags
+// parseTag parses the tag and returns a Tags
 func (s *Struct) parseTag(tag *tags.Tag) (t *Tags) {
 	t = newTag()
 
@@ -80,7 +80,7 @@ func (s *Struct) parseTag(tag *tags.Tag) (t *Tags) {
 	return t
 }
 
-// freeze copy the tags from one Tags to another
+// freeze copies the tags from one Tags to another
 func (s *Struct) freeze(from *Tags, to *Tags) {
 	if from != nil && to == nil {
 		to = newTag()
